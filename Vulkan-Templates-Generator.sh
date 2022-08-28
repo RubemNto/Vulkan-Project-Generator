@@ -26,24 +26,24 @@ echo "
 
 echo "
 * - * - * - * - * - * - * - * - *
-* PROJECTS MENU                 |
-|                               *
-* (1) - CONSOLE VULKAN PROGRAM  |
-| (2) - DESKTOP WINDOW PROGRAM  *
-* (3) - ANDROID MOBILE PROGRAM  |
-| (0) - EXIT                    *
+| PROJECTS MENU                 |
+*                               *
+| (1) - CONSOLE VULKAN PROGRAM  |
+*                               *
+| (0) - EXIT                    |
 * - * - * - * - * - * - * - * - *
 "
+
 read -p "Choose an option: " option
 
-if [ $option != '1' -a $option != '2' -a $option != '3' ]; 
+if [ $option != '1' ]; 
 	then
 		echo "Exiting Generator"
 		exit 0
 	else 
 		read -p "Choose a Host Directory: " hostDir
 		read -p "Project name: " projectName
-		mkdir $hostDir/$projectName
+		mkdir -p $hostDir/$projectName
 		cd $hostDir/$projectName
 		mkdir build
 		mkdir src
@@ -99,11 +99,5 @@ int main() {
 
   return EXIT_SUCCESS;
 }' >> src/main.cpp
-		elif [ $option == '2' ];
-		then
-			echo 'Generating Desktop Window Program'
-		elif [ $option == '3' ];
-		then
-			echo 'Generating Android Mobile Program'
-		fi
+fi
 fi
