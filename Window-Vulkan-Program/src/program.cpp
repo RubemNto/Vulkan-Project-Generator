@@ -13,6 +13,7 @@ void QueueFamilyIndices::setQueueFlags(std::vector<VkQueueFlags> flags) {
   for (const auto &flag : flags) {
     familyFlags.push_back(flag);
     familyIndices.push_back(std::optional<uint32_t>());
+    queueCounts.push_back(0);
   }
 }
 
@@ -41,6 +42,7 @@ findQueueFamilyIndices(VkPhysicalDevice device,
     for (const auto &queueFamilyProperty : queueFamilyProperties) {
       if (queueFamilyProperty.queueFlags & flag) {
         indices.familyIndices.at(f) = i;
+        indices.queueCounts.at(f) = queueFamilyProperty.queueCount;
         break;
       }
       i++;
@@ -56,7 +58,8 @@ findQueueFamilyIndices(VkPhysicalDevice device,
 
 void Program::run() {
   createVulkanInstance(VK_MAKE_VERSION(1, 0, 0));
-  pickPhysicalDevice();
+  pickPhysicalDevice(type, deviceQueueFlags);
+  createLogicalDevice();
   cleanup();
 }
 
@@ -96,19 +99,16 @@ Program::checkDeviceSuitability(VkPhysicalDevice device, uint32_t minAPIVersion,
   // vkGetPhysicalDeviceFeatures(device, &features);
 
   // get device Queue Families
-  std::vector<VkQueueFlags> queueFlags = {
-      VK_QUEUE_GRAPHICS_BIT,
-  };
-
   QueueFamilyIndices queueFamilyIndices =
-      findQueueFamilyIndices(device, queueFlags);
+      findQueueFamilyIndices(device, deviceQueueFlags);
   if (queueFamilyIndices.isComplete() != VK_TRUE) {
     return VK_FALSE;
   }
   return VK_TRUE;
 }
 
-void Program::pickPhysicalDevice() {
+void Program::pickPhysicalDevice(VkPhysicalDeviceType type,
+                                 std::vector<VkQueueFlags> deviceQueueFlags) {
   uint32_t physicalDeviceCount;
   vkEnumeratePhysicalDevices(pInstance, &physicalDeviceCount, nullptr);
 
@@ -121,13 +121,9 @@ void Program::pickPhysicalDevice() {
   vkEnumeratePhysicalDevices(pInstance, &physicalDeviceCount,
                              physicalDevices.data());
 
-  std::vector<VkQueueFlags> deviceQueueFlags = {VK_QUEUE_GRAPHICS_BIT,
-                                                VK_QUEUE_TRANSFER_BIT};
-
   for (const auto &device : physicalDevices) {
-    if (checkDeviceSuitability(device, pApiVersion,
-                               VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU,
-                               deviceQueueFlags) == VK_TRUE) {
+    if (checkDeviceSuitability(device, pApiVersion, type, deviceQueueFlags) ==
+        VK_TRUE) {
       pPhysialDevice = device;
       std::cout << "Selected Vulkan Supported Physical Device!" << std::endl;
       return;
@@ -136,4 +132,32 @@ void Program::pickPhysicalDevice() {
   std::runtime_error("Failed to select suitable Physcial Device");
 }
 
-void Program::cleanup() { vkDestroyInstance(pInstance, nullptr); }
+void Program::createLogicalDevice() {
+  QueueFamilyIndices indices =
+      findQueueFamilyIndices(pPhysialDevice, deviceQueueFlags);
+  std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+  for (uint32_t i = 0; i < static_cast<uint32_t>(deviceQueueFlags.size());
+       i++) {
+    VkDeviceQueueCreateInfo queueInfo{};
+    queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    queueInfo.queueCount = indices.queueCounts.at(i);
+    queueInfo.queueFamilyIndex = indices.familyIndices.at(i).value();
+    queueCreateInfos.push_back(queueInfo);
+  }
+
+  VkDeviceCreateInfo createInfo{};
+  createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+  createInfo.queueCreateInfoCount =
+      static_cast<uint32_t>(queueCreateInfos.size());
+  createInfo.pQueueCreateInfos = queueCreateInfos.data();
+  if (vkCreateDevice(pPhysialDevice, &createInfo, nullptr, &pDevice) !=
+      VK_SUCCESS) {
+    std::runtime_error("Failed to create Logical Device");
+  }
+  std::cout << "Created Vulkan Logical Device!" << std::endl;
+}
+
+void Program::cleanup() {
+  vkDestroyInstance(pInstance, nullptr);
+  vkDestroyDevice(pDevice, nullptr);
+}
