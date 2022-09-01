@@ -1,6 +1,7 @@
 #include <vulkan/vulkan.h>
 
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
 #include <map>
 #include <optional>
@@ -14,6 +15,17 @@ struct QueueFamilyIndices {
   void setQueueFlags(std::vector<VkQueueFlags> flags);
   VkBool32 isComplete();
 };
+
+const std::vector<const char *> validationLayers = {
+    "VK_LAYER_KHRONOS_validation"};
+
+VkBool32 checkValidationLayerSupport();
+
+#ifdef NDEBUG
+const bool enableValidationLayers = false;
+#else
+const bool enableValidationLayers = true;
+#endif
 
 class Program {
 public:
