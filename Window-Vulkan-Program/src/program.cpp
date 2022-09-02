@@ -131,6 +131,14 @@ void Program::createVulkanInstance(uint32_t minAPIVersion) {
   createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
   createInfo.pApplicationInfo = &appInfo;
 
+  uint32_t glfwExtensionCount = 0;
+  const char **glfwExtensions;
+
+  glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+
+  createInfo.enabledExtensionCount = glfwExtensionCount;
+  createInfo.ppEnabledExtensionNames = glfwExtensions;
+
   if (enableValidationLayers) {
     createInfo.enabledLayerCount =
         static_cast<uint32_t>(validationLayers.size());
@@ -218,8 +226,8 @@ void Program::createLogicalDevice() {
   createInfo.queueCreateInfoCount =
       static_cast<uint32_t>(queueCreateInfos.size());
   createInfo.pQueueCreateInfos = queueCreateInfos.data();
-
   createInfo.enabledExtensionCount = 0;
+  createInfo.pEnabledFeatures = &deviceFeatures;
 
   if (enableValidationLayers) {
     createInfo.enabledLayerCount =
@@ -234,11 +242,18 @@ void Program::createLogicalDevice() {
   }
 
   std::cout << "Created Vulkan Logical Device!" << std::endl;
+  uint32_t i = 0;
+  for (const auto &queue : indices.familyIndices) {
+    VkQueue deviceQueue;
+    vkGetDeviceQueue(pDevice, queue.value(), i, &deviceQueue);
+    pDeviceQueues.push_back(deviceQueue);
+    i++;
+  }
 }
 
 void Program::cleanup() {
-  glfwDestroyWindow(window);
   vkDestroyDevice(pDevice, nullptr);
   vkDestroyInstance(pInstance, nullptr);
+  glfwDestroyWindow(window);
   glfwTerminate();
 }

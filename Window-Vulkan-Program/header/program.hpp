@@ -1,8 +1,6 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
-#include <vulkan/vulkan.h>
-
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
@@ -43,12 +41,11 @@ private:
   VkInstance pInstance;
   uint32_t pApiVersion;
 
+  VkPhysicalDevice pPhysialDevice;
   const std::vector<VkQueueFlags> deviceQueueFlags = {VK_QUEUE_GRAPHICS_BIT,
                                                       VK_QUEUE_TRANSFER_BIT};
   const VkPhysicalDeviceType type = VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
-  const std::vector<VkPhysicalDeviceFeatures> deviceFeatures = {};
-
-  VkPhysicalDevice pPhysialDevice;
+  VkPhysicalDeviceFeatures deviceFeatures = {};
 
   VkDevice pDevice;
   std::vector<VkQueue> pDeviceQueues;
