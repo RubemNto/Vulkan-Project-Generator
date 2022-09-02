@@ -37,12 +37,25 @@ findQueueFamilyIndices(VkPhysicalDevice device,
                                            queueFamilyProperties.data());
 
   uint32_t f = 0;
+  std::vector<uint32_t> selectedFamilies;
   for (auto &flag : indices.familyFlags) {
     uint32_t i = 0;
     for (const auto &queueFamilyProperty : queueFamilyProperties) {
+      bool continueShearch = false;
+      for (const auto &family : selectedFamilies) {
+        if (family == i) {
+          continueShearch = true;
+          break;
+        }
+      }
+      if (continueShearch == true) {
+        i++;
+        continue;
+      }
       if (queueFamilyProperty.queueFlags & flag) {
         indices.familyIndices.at(f) = i;
         indices.queueCounts.at(f) = queueFamilyProperty.queueCount;
+        selectedFamilies.push_back(i);
         break;
       }
       i++;
@@ -81,10 +94,26 @@ VkBool32 checkValidationLayerSupport() {
   return true;
 }
 
+void Program::initWindow() {
+  glfwInit();
+  glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+  glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+  window = glfwCreateWindow(WIDTH, HEIGHT, "Window Vulkan Program", nullptr,
+                            nullptr);
+}
+
+void Program::mainLoop() {
+  while (!glfwWindowShouldClose(window)) {
+    glfwPollEvents();
+  }
+}
+
 void Program::run() {
+  initWindow();
   createVulkanInstance(VK_MAKE_VERSION(1, 0, 0));
   pickPhysicalDevice(type, deviceQueueFlags);
   createLogicalDevice();
+  mainLoop();
   cleanup();
 }
 
@@ -180,6 +209,7 @@ void Program::createLogicalDevice() {
     queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
     queueInfo.queueCount = indices.queueCounts.at(i);
     queueInfo.queueFamilyIndex = indices.familyIndices.at(i).value();
+    queueInfo.pQueuePriorities = nullptr;
     queueCreateInfos.push_back(queueInfo);
   }
 
@@ -188,14 +218,27 @@ void Program::createLogicalDevice() {
   createInfo.queueCreateInfoCount =
       static_cast<uint32_t>(queueCreateInfos.size());
   createInfo.pQueueCreateInfos = queueCreateInfos.data();
+
+  createInfo.enabledExtensionCount = 0;
+
+  if (enableValidationLayers) {
+    createInfo.enabledLayerCount =
+        static_cast<uint32_t>(validationLayers.size());
+    createInfo.ppEnabledLayerNames = validationLayers.data();
+  } else {
+    createInfo.enabledLayerCount = 0;
+  }
   if (vkCreateDevice(pPhysialDevice, &createInfo, nullptr, &pDevice) !=
       VK_SUCCESS) {
     std::runtime_error("Failed to create Logical Device");
   }
+
   std::cout << "Created Vulkan Logical Device!" << std::endl;
 }
 
 void Program::cleanup() {
+  glfwDestroyWindow(window);
   vkDestroyDevice(pDevice, nullptr);
   vkDestroyInstance(pInstance, nullptr);
+  glfwTerminate();
 }

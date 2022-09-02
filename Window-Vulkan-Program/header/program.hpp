@@ -1,3 +1,6 @@
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+
 #include <vulkan/vulkan.h>
 
 #include <cstdlib>
@@ -15,7 +18,8 @@ struct QueueFamilyIndices {
   void setQueueFlags(std::vector<VkQueueFlags> flags);
   VkBool32 isComplete();
 };
-
+const uint32_t WIDTH = 800;
+const uint32_t HEIGHT = 600;
 const std::vector<const char *> validationLayers = {
     "VK_LAYER_KHRONOS_validation"};
 
@@ -32,6 +36,10 @@ public:
   void run();
 
 private:
+  GLFWwindow *window;
+  void initWindow();
+  void mainLoop();
+
   VkInstance pInstance;
   uint32_t pApiVersion;
 
@@ -41,7 +49,9 @@ private:
   const std::vector<VkPhysicalDeviceFeatures> deviceFeatures = {};
 
   VkPhysicalDevice pPhysialDevice;
+
   VkDevice pDevice;
+  std::vector<VkQueue> pDeviceQueues;
 
   void createVulkanInstance(uint32_t minAPIVersion);
   VkBool32 checkDeviceSuitability(VkPhysicalDevice device,
