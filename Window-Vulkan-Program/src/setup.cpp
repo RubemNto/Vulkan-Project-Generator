@@ -97,7 +97,7 @@ Setup::checkDeviceSuitability(VkPhysicalDevice device, uint32_t minAPIVersion,
 
   // get device Queue Families
   QueueFamilyIndices queueFamilyIndices =
-      findQueueFamilyIndices(device, deviceQueueFlags);
+      findQueueFamilyIndices(device, deviceQueueFlags, nullptr);
   if (queueFamilyIndices.isComplete() != VK_TRUE) {
     return VK_FALSE;
   }
@@ -117,7 +117,6 @@ void Setup::pickPhysicalDevice(VkPhysicalDeviceType type,
   physicalDevices.resize(physicalDeviceCount);
   vkEnumeratePhysicalDevices(pInstance, &physicalDeviceCount,
                              physicalDevices.data());
-
   for (const auto &device : physicalDevices) {
     if (checkDeviceSuitability(device, pApiVersion, type, deviceQueueFlags) ==
         VK_TRUE) {
@@ -129,17 +128,29 @@ void Setup::pickPhysicalDevice(VkPhysicalDeviceType type,
   std::runtime_error("Failed to select suitable Physcial Device");
 }
 
-void Setup::createLogicalDevice() {
+void Setup::createLogicalDevice(VkSurfaceKHR *surface) {
   QueueFamilyIndices indices =
-      findQueueFamilyIndices(pPhysialDevice, deviceQueueFlags);
+      findQueueFamilyIndices(pPhysialDevice, deviceQueueFlags, surface);
   std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-  for (uint32_t i = 0; i < static_cast<uint32_t>(deviceQueueFlags.size());
-       i++) {
+
+  uint32_t familyCout = static_cast<uint32_t>(indices.familyIndices.size());
+  float queuePriority = 1.0f;
+  for (uint32_t i = 0; i < familyCout; i++) {
     VkDeviceQueueCreateInfo queueInfo{};
     queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
     queueInfo.queueCount = indices.queueCounts.at(i);
     queueInfo.queueFamilyIndex = indices.familyIndices.at(i).value();
-    queueInfo.pQueuePriorities = nullptr;
+    queueInfo.pQueuePriorities = &queuePriority;
+    queueCreateInfos.push_back(queueInfo);
+  }
+
+  if (indices.presentable == true &&
+      indices.presentFamily.has_value() == true) {
+    VkDeviceQueueCreateInfo queueInfo{};
+    queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    queueInfo.queueCount = 1;
+    queueInfo.queueFamilyIndex = indices.presentFamily.value();
+    queueInfo.pQueuePriorities = &queuePriority;
     queueCreateInfos.push_back(queueInfo);
   }
 

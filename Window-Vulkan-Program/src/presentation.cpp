@@ -5,4 +5,5 @@ void Presentation::createSurface(VkInstance instance, GLFWwindow *window) {
       VK_SUCCESS) {
     std::runtime_error("Failed to create GLFW Window Surface!");
   }
+  std::cout << "Created GLFW Window Surface" << std::endl;
 }

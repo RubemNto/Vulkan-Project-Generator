@@ -51,5 +51,5 @@ public:
   void pickPhysicalDevice(VkPhysicalDeviceType type,
                           std::vector<VkQueueFlags> deviceQueueFlags);
 
-  void createLogicalDevice();
+  void createLogicalDevice(VkSurfaceKHR *surface);
 };

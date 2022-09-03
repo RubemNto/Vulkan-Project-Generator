@@ -6,7 +6,8 @@ void QueueFamilyIndices::setQueueFlags(std::vector<VkQueueFlags> flags) {
     familyIndices.push_back(std::optional<uint32_t>());
     queueCounts.push_back(0);
   }
-}
+  presentable = false;
+};
 
 VkBool32 QueueFamilyIndices::isComplete() {
   for (const auto &index : familyIndices) {
@@ -14,12 +15,17 @@ VkBool32 QueueFamilyIndices::isComplete() {
       return false;
     }
   }
-  return true;
-}
 
-QueueFamilyIndices
-findQueueFamilyIndices(VkPhysicalDevice device,
-                       std::vector<VkQueueFlags> queueFlags) {
+  if (presentable && presentFamily.has_value() == false) {
+    return false;
+  }
+
+  return true;
+};
+
+QueueFamilyIndices findQueueFamilyIndices(VkPhysicalDevice device,
+                                          std::vector<VkQueueFlags> queueFlags,
+                                          VkSurfaceKHR *surface) {
 
   uint32_t queueFamilyPropertiesCount;
   vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyPropertiesCount,
@@ -52,6 +58,14 @@ findQueueFamilyIndices(VkPhysicalDevice device,
         i++;
         continue;
       }
+      if (surface != nullptr && indices.presentable == false) {
+        VkSurfaceKHR tempSurface = *surface;
+        vkGetPhysicalDeviceSurfaceSupportKHR(device, i, tempSurface,
+                                             &indices.presentable);
+        if (indices.presentable) {
+          indices.presentFamily = i;
+        }
+      }
       if (queueFamilyProperty.queueFlags & flag) {
         indices.familyIndices.at(f) = i;
         indices.queueCounts.at(f) = queueFamilyProperty.queueCount;
@@ -67,4 +81,4 @@ findQueueFamilyIndices(VkPhysicalDevice device,
   }
 
   return indices;
-}
+};
