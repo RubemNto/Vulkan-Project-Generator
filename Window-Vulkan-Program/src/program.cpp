@@ -4,8 +4,9 @@ void Program::run() {
   setup.initWindow();
   setup.createVulkanInstance(VK_MAKE_VERSION(1, 0, 0));
   presentation.createSurface(setup.pInstance, setup.window);
-  setup.pickPhysicalDevice(setup.type, setup.deviceQueueFlags);
-  setup.createLogicalDevice(&presentation.surface);
+  setup.pickPhysicalDevice(setup.type, presentation.surface,
+                           setup.deviceQueueFlags);
+  setup.createLogicalDevice(&presentation.surface, &presentation.presentQueue);
   setup.mainLoop();
   cleanup();
 }

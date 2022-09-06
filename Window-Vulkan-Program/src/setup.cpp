@@ -78,8 +78,27 @@ void Setup::createVulkanInstance(uint32_t minAPIVersion) {
   }
 }
 
+VkBool32 Setup::checkDeviceExtensionSupport(VkPhysicalDevice device) {
+  uint32_t extensionCount;
+  vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount,
+                                       nullptr);
+  std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+
+  vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount,
+                                       availableExtensions.data());
+  std::set<std::string> requiredExtensions(deviceExtensions.begin(),
+                                           deviceExtensions.end());
+
+  for (const auto &extension : availableExtensions) {
+    requiredExtensions.erase(extension.extensionName);
+  }
+
+  return requiredExtensions.empty();
+}
+
 VkBool32
-Setup::checkDeviceSuitability(VkPhysicalDevice device, uint32_t minAPIVersion,
+Setup::checkDeviceSuitability(VkPhysicalDevice device, VkSurfaceKHR surface,
+                              uint32_t minAPIVersion,
                               VkPhysicalDeviceType deviceType,
                               std::vector<VkQueueFlags> deviceQueueFlags) {
   // get device Properties
@@ -98,13 +117,27 @@ Setup::checkDeviceSuitability(VkPhysicalDevice device, uint32_t minAPIVersion,
   // get device Queue Families
   QueueFamilyIndices queueFamilyIndices =
       findQueueFamilyIndices(device, deviceQueueFlags, nullptr);
+
+  VkBool32 extensionSupport = checkDeviceExtensionSupport(device);
+  if (extensionSupport == false) {
+    return VK_FALSE;
+  }
+
+  SwapChainSupportDetails swapChainSupportDetails =
+      querySwapChainSupport(device, surface);
+  bool swapChainAdequate = !swapChainSupportDetails.formats.empty() &&
+                           !swapChainSupportDetails.presentModes.empty();
+  if (swapChainAdequate == false) {
+    return VK_FALSE;
+  }
+
   if (queueFamilyIndices.isComplete() != VK_TRUE) {
     return VK_FALSE;
   }
   return VK_TRUE;
 }
 
-void Setup::pickPhysicalDevice(VkPhysicalDeviceType type,
+void Setup::pickPhysicalDevice(VkPhysicalDeviceType type, VkSurfaceKHR surface,
                                std::vector<VkQueueFlags> deviceQueueFlags) {
   uint32_t physicalDeviceCount;
   vkEnumeratePhysicalDevices(pInstance, &physicalDeviceCount, nullptr);
@@ -118,8 +151,8 @@ void Setup::pickPhysicalDevice(VkPhysicalDeviceType type,
   vkEnumeratePhysicalDevices(pInstance, &physicalDeviceCount,
                              physicalDevices.data());
   for (const auto &device : physicalDevices) {
-    if (checkDeviceSuitability(device, pApiVersion, type, deviceQueueFlags) ==
-        VK_TRUE) {
+    if (checkDeviceSuitability(device, surface, pApiVersion, type,
+                               deviceQueueFlags) == VK_TRUE) {
       pPhysialDevice = device;
       std::cout << "Selected Vulkan Supported Physical Device!" << std::endl;
       return;
@@ -128,7 +161,7 @@ void Setup::pickPhysicalDevice(VkPhysicalDeviceType type,
   std::runtime_error("Failed to select suitable Physcial Device");
 }
 
-void Setup::createLogicalDevice(VkSurfaceKHR *surface) {
+void Setup::createLogicalDevice(VkSurfaceKHR *surface, VkQueue *presentQueue) {
   QueueFamilyIndices indices =
       findQueueFamilyIndices(pPhysialDevice, deviceQueueFlags, surface);
   std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
@@ -159,7 +192,9 @@ void Setup::createLogicalDevice(VkSurfaceKHR *surface) {
   createInfo.queueCreateInfoCount =
       static_cast<uint32_t>(queueCreateInfos.size());
   createInfo.pQueueCreateInfos = queueCreateInfos.data();
-  createInfo.enabledExtensionCount = 0;
+  createInfo.enabledExtensionCount =
+      static_cast<uint32_t>(deviceExtensions.size());
+  createInfo.ppEnabledExtensionNames = deviceExtensions.data();
   createInfo.pEnabledFeatures = &deviceFeatures;
 
   if (enableValidationLayers) {
@@ -182,4 +217,5 @@ void Setup::createLogicalDevice(VkSurfaceKHR *surface) {
     pDeviceQueues.push_back(deviceQueue);
     i++;
   }
+  vkGetDeviceQueue(pDevice, indices.presentFamily.value(), 0, presentQueue);
 }
