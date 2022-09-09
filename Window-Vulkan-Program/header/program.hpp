@@ -1,3 +1,4 @@
+#pragma once
 #include "../header/presentation.hpp"
 #include "../header/setup.hpp"
 
