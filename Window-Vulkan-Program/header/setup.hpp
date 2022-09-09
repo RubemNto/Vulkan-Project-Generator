@@ -56,5 +56,9 @@ public:
   void pickPhysicalDevice(VkPhysicalDeviceType type, VkSurfaceKHR surface,
                           std::vector<VkQueueFlags> deviceQueueFlags);
 
+<<<<<<< HEAD
   void createLogicalDevice(VkSurfaceKHR *surface, VkQueue *presentationQueue);
+=======
+  void createLogicalDevice();
+>>>>>>> parent of 24947f0 (add surface creation)
 };
