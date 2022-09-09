@@ -78,27 +78,8 @@ void Setup::createVulkanInstance(uint32_t minAPIVersion) {
   }
 }
 
-VkBool32 Setup::checkDeviceExtensionSupport(VkPhysicalDevice device) {
-  uint32_t extensionCount;
-  vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount,
-                                       nullptr);
-  std::vector<VkExtensionProperties> availableExtensions(extensionCount);
-
-  vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount,
-                                       availableExtensions.data());
-  std::set<std::string> requiredExtensions(deviceExtensions.begin(),
-                                           deviceExtensions.end());
-
-  for (const auto &extension : availableExtensions) {
-    requiredExtensions.erase(extension.extensionName);
-  }
-
-  return requiredExtensions.empty();
-}
-
 VkBool32
-Setup::checkDeviceSuitability(VkPhysicalDevice device, VkSurfaceKHR surface,
-                              uint32_t minAPIVersion,
+Setup::checkDeviceSuitability(VkPhysicalDevice device, uint32_t minAPIVersion,
                               VkPhysicalDeviceType deviceType,
                               std::vector<VkQueueFlags> deviceQueueFlags) {
   // get device Properties
@@ -116,32 +97,14 @@ Setup::checkDeviceSuitability(VkPhysicalDevice device, VkSurfaceKHR surface,
 
   // get device Queue Families
   QueueFamilyIndices queueFamilyIndices =
-<<<<<<< HEAD
       findQueueFamilyIndices(device, deviceQueueFlags, nullptr);
-
-  VkBool32 extensionSupport = checkDeviceExtensionSupport(device);
-  if (extensionSupport == false) {
-    return VK_FALSE;
-  }
-
-  SwapChainSupportDetails swapChainSupportDetails =
-      querySwapChainSupport(device, surface);
-  bool swapChainAdequate = !swapChainSupportDetails.formats.empty() &&
-                           !swapChainSupportDetails.presentModes.empty();
-  if (swapChainAdequate == false) {
-    return VK_FALSE;
-  }
-
-=======
-      findQueueFamilyIndices(device, deviceQueueFlags);
->>>>>>> parent of 24947f0 (add surface creation)
   if (queueFamilyIndices.isComplete() != VK_TRUE) {
     return VK_FALSE;
   }
   return VK_TRUE;
 }
 
-void Setup::pickPhysicalDevice(VkPhysicalDeviceType type, VkSurfaceKHR surface,
+void Setup::pickPhysicalDevice(VkPhysicalDeviceType type,
                                std::vector<VkQueueFlags> deviceQueueFlags) {
   uint32_t physicalDeviceCount;
   vkEnumeratePhysicalDevices(pInstance, &physicalDeviceCount, nullptr);
@@ -154,10 +117,9 @@ void Setup::pickPhysicalDevice(VkPhysicalDeviceType type, VkSurfaceKHR surface,
   physicalDevices.resize(physicalDeviceCount);
   vkEnumeratePhysicalDevices(pInstance, &physicalDeviceCount,
                              physicalDevices.data());
-
   for (const auto &device : physicalDevices) {
-    if (checkDeviceSuitability(device, surface, pApiVersion, type,
-                               deviceQueueFlags) == VK_TRUE) {
+    if (checkDeviceSuitability(device, pApiVersion, type, deviceQueueFlags) ==
+        VK_TRUE) {
       pPhysialDevice = device;
       std::cout << "Selected Vulkan Supported Physical Device!" << std::endl;
       return;
@@ -166,21 +128,29 @@ void Setup::pickPhysicalDevice(VkPhysicalDeviceType type, VkSurfaceKHR surface,
   std::runtime_error("Failed to select suitable Physcial Device");
 }
 
-<<<<<<< HEAD
-void Setup::createLogicalDevice(VkSurfaceKHR *surface, VkQueue *presentQueue) {
-=======
-void Setup::createLogicalDevice() {
->>>>>>> parent of 24947f0 (add surface creation)
+void Setup::createLogicalDevice(VkSurfaceKHR *surface) {
   QueueFamilyIndices indices =
-      findQueueFamilyIndices(pPhysialDevice, deviceQueueFlags);
+      findQueueFamilyIndices(pPhysialDevice, deviceQueueFlags, surface);
   std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-  for (uint32_t i = 0; i < static_cast<uint32_t>(deviceQueueFlags.size());
-       i++) {
+
+  uint32_t familyCout = static_cast<uint32_t>(indices.familyIndices.size());
+  float queuePriority = 1.0f;
+  for (uint32_t i = 0; i < familyCout; i++) {
     VkDeviceQueueCreateInfo queueInfo{};
     queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
     queueInfo.queueCount = indices.queueCounts.at(i);
     queueInfo.queueFamilyIndex = indices.familyIndices.at(i).value();
-    queueInfo.pQueuePriorities = nullptr;
+    queueInfo.pQueuePriorities = &queuePriority;
+    queueCreateInfos.push_back(queueInfo);
+  }
+
+  if (indices.presentable == true &&
+      indices.presentFamily.has_value() == true) {
+    VkDeviceQueueCreateInfo queueInfo{};
+    queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    queueInfo.queueCount = 1;
+    queueInfo.queueFamilyIndex = indices.presentFamily.value();
+    queueInfo.pQueuePriorities = &queuePriority;
     queueCreateInfos.push_back(queueInfo);
   }
 
@@ -189,9 +159,7 @@ void Setup::createLogicalDevice() {
   createInfo.queueCreateInfoCount =
       static_cast<uint32_t>(queueCreateInfos.size());
   createInfo.pQueueCreateInfos = queueCreateInfos.data();
-  createInfo.enabledExtensionCount =
-      static_cast<uint32_t>(deviceExtensions.size());
-  createInfo.ppEnabledExtensionNames = deviceExtensions.data();
+  createInfo.enabledExtensionCount = 0;
   createInfo.pEnabledFeatures = &deviceFeatures;
 
   if (enableValidationLayers) {
@@ -214,5 +182,4 @@ void Setup::createLogicalDevice() {
     pDeviceQueues.push_back(deviceQueue);
     i++;
   }
-  vkGetDeviceQueue(pDevice, indices.presentFamily.value(), 0, presentQueue);
 }

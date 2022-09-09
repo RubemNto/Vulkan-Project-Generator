@@ -9,9 +9,13 @@ struct QueueFamilyIndices {
   std::vector<std::optional<uint32_t>> familyIndices;
   std::vector<uint32_t> queueCounts;
 
+  VkBool32 presentable;
+  std::optional<uint32_t> presentFamily;
+
   void setQueueFlags(std::vector<VkQueueFlags> flags);
   VkBool32 isComplete();
 };
 
 QueueFamilyIndices findQueueFamilyIndices(VkPhysicalDevice device,
-                                          std::vector<VkQueueFlags> queueFlags);
+                                          std::vector<VkQueueFlags> queueFlags,
+                                          VkSurfaceKHR *surface);
