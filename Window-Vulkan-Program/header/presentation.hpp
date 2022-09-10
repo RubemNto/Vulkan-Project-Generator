@@ -5,5 +5,7 @@
 class Presentation {
 public:
   VkSurfaceKHR surface;
+  VkSwapchainKHR swapChain;
   void createSurface(VkInstance instance, GLFWwindow *window);
+  void createSwapChain(VkPhysicalDevice device);
 };

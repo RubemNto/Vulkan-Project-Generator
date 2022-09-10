@@ -7,3 +7,16 @@ void Presentation::createSurface(VkInstance instance, GLFWwindow *window) {
   }
   std::cout << "Created GLFW Window Surface" << std::endl;
 }
+void Presentation::createSwapChain(VkPhysicalDevice device) {
+  VkSwapchainCreateInfoKHR createInfo{};
+  createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+  createInfo.surface = surface;
+
+  VkSurfaceCapabilitiesKHR capabilities;
+  vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &capabilities);
+  if (capabilities.minImageCount >= 3) {
+    createInfo.minImageCount = 3;
+  } else {
+    createInfo.minImageCount = capabilities.minImageCount;
+  }
+}
