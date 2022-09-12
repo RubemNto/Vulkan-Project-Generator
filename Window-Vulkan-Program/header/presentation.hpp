@@ -12,7 +12,11 @@
 class Presentation {
 public:
   VkSurfaceKHR surface;
+
   VkSwapchainKHR swapChain;
+  std::vector<VkImage> swapChainImages;
+  VkFormat swapChainImageFormat;
+  VkExtent2D swapChainExtent;
   void createSurface(VkInstance instance, GLFWwindow *window);
   void createSwapChain(GLFWwindow *window, std::vector<VkQueueFlags> queueFlags,
                        VkPhysicalDevice pDevice, VkDevice lDevice);

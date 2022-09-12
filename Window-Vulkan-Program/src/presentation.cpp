@@ -66,6 +66,9 @@ void Presentation::createSwapChain(GLFWwindow *window,
   VkPresentModeKHR presentMode = pickPresentMode(swapChainSupport.presentModes);
   VkExtent2D extent = pickExtent(window, swapChainSupport.capabilities);
 
+  swapChainImageFormat = surfaceFormat.format;
+  swapChainExtent = extent;
+
   uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
 
   if (swapChainSupport.capabilities.maxImageCount > 0 &&
@@ -115,4 +118,8 @@ void Presentation::createSwapChain(GLFWwindow *window,
   } else {
     std::cout << "Created Vulkan Swap Chain" << std::endl;
   }
+  vkGetSwapchainImagesKHR(lDevice, swapChain, &imageCount, nullptr);
+  swapChainImages.reserve(imageCount);
+  vkGetSwapchainImagesKHR(lDevice, swapChain, &imageCount,
+                          swapChainImages.data());
 }
