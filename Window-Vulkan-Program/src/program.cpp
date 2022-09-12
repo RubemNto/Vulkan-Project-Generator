@@ -9,11 +9,15 @@ void Program::run() {
   setup.createLogicalDevice(&presentation.surface);
   presentation.createSwapChain(setup.window, setup.deviceQueueFlags,
                                setup.pPhysialDevice, setup.pDevice);
+  presentation.createImageViews(setup.pDevice);
   setup.mainLoop();
   cleanup();
 }
 
 void Program::cleanup() {
+  for (auto imageView : presentation.swapChainImageViews) {
+    vkDestroyImageView(setup.pDevice, imageView, nullptr);
+  }
   vkDestroySwapchainKHR(setup.pDevice, presentation.swapChain, nullptr);
   vkDestroyDevice(setup.pDevice, nullptr);
   vkDestroySurfaceKHR(setup.pInstance, presentation.surface, nullptr);
