@@ -7,11 +7,14 @@ void Program::run() {
   setup.pickPhysicalDevice(setup.type, setup.deviceQueueFlags,
                            presentation.surface);
   setup.createLogicalDevice(&presentation.surface);
+  presentation.createSwapChain(setup.window, setup.deviceQueueFlags,
+                               setup.pPhysialDevice, setup.pDevice);
   setup.mainLoop();
   cleanup();
 }
 
 void Program::cleanup() {
+  vkDestroySwapchainKHR(setup.pDevice, presentation.swapChain, nullptr);
   vkDestroyDevice(setup.pDevice, nullptr);
   vkDestroySurfaceKHR(setup.pInstance, presentation.surface, nullptr);
   vkDestroyInstance(setup.pInstance, nullptr);

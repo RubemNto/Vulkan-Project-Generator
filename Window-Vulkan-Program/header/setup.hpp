@@ -38,8 +38,7 @@ public:
   uint32_t pApiVersion;
 
   VkPhysicalDevice pPhysialDevice;
-  const std::vector<VkQueueFlags> deviceQueueFlags = {VK_QUEUE_GRAPHICS_BIT,
-                                                      VK_QUEUE_TRANSFER_BIT};
+  const std::vector<VkQueueFlags> deviceQueueFlags = {VK_QUEUE_GRAPHICS_BIT};
   const VkPhysicalDeviceType type = VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
   VkPhysicalDeviceFeatures deviceFeatures = {};
 
