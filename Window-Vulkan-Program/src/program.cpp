@@ -10,12 +10,19 @@ void Program::run() {
   presentation.createSwapChain(setup.window, setup.deviceQueueFlags,
                                setup.pPhysialDevice, setup.pDevice);
   presentation.createImageViews(setup.pDevice);
-  graphicsPipeline.createGraphicsPipeline();
+  renderPass.createRenderPass(setup.pDevice, presentation.swapChainImageFormat);
+  graphicsPipeline.createGraphicsPipeline(
+      setup.pDevice, presentation.swapChainExtent, renderPass.renderPass);
   setup.mainLoop();
   cleanup();
 }
 
 void Program::cleanup() {
+  vkDestroyPipeline(setup.pDevice, graphicsPipeline.graphicsPipeline, nullptr);
+  vkDestroyPipelineLayout(setup.pDevice, graphicsPipeline.pipelineLayout,
+                          nullptr);
+  vkDestroyRenderPass(setup.pDevice, renderPass.renderPass, nullptr);
+
   for (auto imageView : presentation.swapChainImageViews) {
     vkDestroyImageView(setup.pDevice, imageView, nullptr);
   }

@@ -3,9 +3,12 @@
 #include <iostream>
 #include <vector>
 #include <vulkan/vulkan.h>
+
 class GraphicsPipeline {
 public:
-  void createGraphicsPipeline(VkDevice device);
+  void createGraphicsPipeline(VkDevice device, VkExtent2D swapChainExtent,
+                              VkRenderPass renderPass);
 
-private:
+  VkPipelineLayout pipelineLayout;
+  VkPipeline graphicsPipeline;
 };

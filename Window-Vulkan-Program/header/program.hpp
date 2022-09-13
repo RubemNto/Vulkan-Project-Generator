@@ -1,6 +1,7 @@
 #pragma once
 #include "../header/graphicspipeline.hpp"
 #include "../header/presentation.hpp"
+#include "../header/renderpass.hpp"
 #include "../header/setup.hpp"
 
 class Program {
@@ -11,5 +12,6 @@ private:
   Setup setup;
   Presentation presentation;
   GraphicsPipeline graphicsPipeline;
+  RenderPass renderPass;
   void cleanup();
 };
