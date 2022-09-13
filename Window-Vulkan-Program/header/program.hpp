@@ -1,4 +1,5 @@
 #pragma once
+#include "../header/graphicspipeline.hpp"
 #include "../header/presentation.hpp"
 #include "../header/setup.hpp"
 
@@ -9,5 +10,6 @@ public:
 private:
   Setup setup;
   Presentation presentation;
+  GraphicsPipeline graphicsPipeline;
   void cleanup();
 };

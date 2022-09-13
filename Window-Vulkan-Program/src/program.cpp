@@ -10,6 +10,7 @@ void Program::run() {
   presentation.createSwapChain(setup.window, setup.deviceQueueFlags,
                                setup.pPhysialDevice, setup.pDevice);
   presentation.createImageViews(setup.pDevice);
+  graphicsPipeline.createGraphicsPipeline();
   setup.mainLoop();
   cleanup();
 }
