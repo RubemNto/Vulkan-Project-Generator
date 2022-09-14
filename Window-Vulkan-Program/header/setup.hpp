@@ -32,7 +32,6 @@ class Setup {
 public:
   GLFWwindow *window;
   void initWindow();
-  void mainLoop();
 
   VkInstance pInstance;
   uint32_t pApiVersion;

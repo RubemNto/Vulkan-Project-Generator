@@ -119,7 +119,7 @@ void Presentation::createSwapChain(GLFWwindow *window,
     std::cout << "Created Vulkan Swap Chain" << std::endl;
   }
   vkGetSwapchainImagesKHR(lDevice, swapChain, &imageCount, nullptr);
-  swapChainImages.reserve(imageCount);
+  swapChainImages.resize(imageCount);
   vkGetSwapchainImagesKHR(lDevice, swapChain, &imageCount,
                           swapChainImages.data());
 }

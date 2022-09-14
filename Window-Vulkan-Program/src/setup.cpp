@@ -33,12 +33,6 @@ void Setup::initWindow() {
                             nullptr);
 }
 
-void Setup::mainLoop() {
-  while (!glfwWindowShouldClose(window)) {
-    glfwPollEvents();
-  }
-}
-
 void Setup::createVulkanInstance(uint32_t minAPIVersion) {
   if (enableValidationLayers && !checkValidationLayerSupport()) {
     throw std::runtime_error("validation layers requested, but not available!");
@@ -214,8 +208,13 @@ void Setup::createLogicalDevice(VkSurfaceKHR *surface) {
   uint32_t i = 0;
   for (const auto &queue : indices.familyIndices) {
     VkQueue deviceQueue;
-    vkGetDeviceQueue(pDevice, queue.value(), i, &deviceQueue);
+    vkGetDeviceQueue(pDevice, queue.value(), 0, &deviceQueue);
     pDeviceQueues.push_back(deviceQueue);
     i++;
+  }
+  if (indices.presentable) {
+    VkQueue deviceQueue;
+    vkGetDeviceQueue(pDevice, indices.presentFamily.value(), 0, &deviceQueue);
+    pDeviceQueues.push_back(deviceQueue);
   }
 }

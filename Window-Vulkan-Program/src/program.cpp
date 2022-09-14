@@ -1,5 +1,17 @@
 #include "../header/program.hpp"
 
+void Program::mainLoop(GLFWwindow *window, VkDevice device,
+                       VkQueue graphicsQueue, VkQueue presentQueue,
+                       VkSwapchainKHR swapChain, VkExtent2D extent,
+                       VkRenderPass renderPass, VkPipeline graphicsPipeline) {
+  while (!glfwWindowShouldClose(window)) {
+    glfwPollEvents();
+    drawing.drawFrame(device, graphicsQueue, presentQueue, swapChain,
+                      renderPass, extent, graphicsPipeline);
+  }
+  vkDeviceWaitIdle(device);
+}
+
 void Program::run() {
   setup.initWindow();
   setup.createVulkanInstance(VK_MAKE_VERSION(1, 0, 0));
@@ -18,12 +30,19 @@ void Program::run() {
                              presentation.swapChainImageViews);
   drawing.createCommandPool(setup.pDevice, setup.pPhysialDevice,
                             setup.deviceQueueFlags, &presentation.surface);
+  drawing.createSyncObjects(setup.pDevice);
   drawing.createCommandBuffer(setup.pDevice);
-  setup.mainLoop();
+  mainLoop(setup.window, setup.pDevice, setup.pDeviceQueues.at(0),
+           setup.pDeviceQueues.at(1), presentation.swapChain,
+           presentation.swapChainExtent, renderPass.renderPass,
+           graphicsPipeline.graphicsPipeline);
   cleanup();
 }
 
 void Program::cleanup() {
+  vkDestroySemaphore(setup.pDevice, drawing.renderFinishedSemaphore, nullptr);
+  vkDestroySemaphore(setup.pDevice, drawing.imageAvailableSemaphore, nullptr);
+  vkDestroyFence(setup.pDevice, drawing.inFlightFence, nullptr);
   vkDestroyCommandPool(setup.pDevice, drawing.commandPool, nullptr);
 
   for (auto framebuffer : drawing.swapChainFramebuffers) {
