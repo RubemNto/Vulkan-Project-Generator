@@ -4,6 +4,8 @@ void Program::mainLoop(GLFWwindow *window, VkDevice device,
                        VkQueue graphicsQueue, VkQueue presentQueue,
                        VkSwapchainKHR swapChain, VkExtent2D extent,
                        VkRenderPass renderPass, VkPipeline graphicsPipeline) {
+  Color bg = color(0.1, 0.1, 0.1, 1.0);
+  drawing.setBackgroundColor(bg);
   while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();
     drawing.drawFrame(device, graphicsQueue, presentQueue, swapChain,
@@ -31,7 +33,7 @@ void Program::run() {
   drawing.createCommandPool(setup.pDevice, setup.pPhysialDevice,
                             setup.deviceQueueFlags, &presentation.surface);
   drawing.createSyncObjects(setup.pDevice);
-  drawing.createCommandBuffer(setup.pDevice);
+  drawing.createCommandBuffers(setup.pDevice);
   mainLoop(setup.window, setup.pDevice, setup.pDeviceQueues.at(0),
            setup.pDeviceQueues.at(1), presentation.swapChain,
            presentation.swapChainExtent, renderPass.renderPass,
@@ -40,9 +42,13 @@ void Program::run() {
 }
 
 void Program::cleanup() {
-  vkDestroySemaphore(setup.pDevice, drawing.renderFinishedSemaphore, nullptr);
-  vkDestroySemaphore(setup.pDevice, drawing.imageAvailableSemaphore, nullptr);
-  vkDestroyFence(setup.pDevice, drawing.inFlightFence, nullptr);
+  for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    vkDestroySemaphore(setup.pDevice, drawing.renderFinishedSemaphores[i],
+                       nullptr);
+    vkDestroySemaphore(setup.pDevice, drawing.imageAvailableSemaphores[i],
+                       nullptr);
+    vkDestroyFence(setup.pDevice, drawing.inFlightFences[i], nullptr);
+  }
   vkDestroyCommandPool(setup.pDevice, drawing.commandPool, nullptr);
 
   for (auto framebuffer : drawing.swapChainFramebuffers) {

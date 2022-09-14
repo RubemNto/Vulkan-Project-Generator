@@ -19,18 +19,10 @@ struct VertexNormalTexture {
   glm::vec2 textureCoordinate;
 };
 
-template <typename T>
-VkVertexInputBindingDescription getBindingDescription(uint32_t binding);
-
-template <typename T>
-std::vector<VkVertexInputAttributeDescription>
-getAttributeDescriptions(uint32_t binding);
-
 class VertexBuffer {
 private:
   VkBuffer vertexBuffer;
 
 public:
-  template <typename T>
-  void createVertexBuffer(std::vector<T> vertices, VkDevice device);
+  void createVertexBuffer();
 };

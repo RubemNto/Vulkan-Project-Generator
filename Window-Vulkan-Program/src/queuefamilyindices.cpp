@@ -1,4 +1,47 @@
 #include "../header/queuefamilyindices.hpp"
+
+VkBool32 GraphicsPresentQueueFramilyIndices::isComplete() {
+  return graphicsFamilyIndice.has_value() && presentFamilyIndice.has_value();
+}
+
+GraphicsPresentQueueFramilyIndices
+findQueueFamilyIndices(VkPhysicalDevice device, VkSurfaceKHR *surface) {
+  uint32_t queueFamilyPropertiesCount;
+  vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyPropertiesCount,
+                                           nullptr);
+  if (queueFamilyPropertiesCount <= 0) {
+    std::runtime_error("Failed to get Queue Families from Physcial Device");
+  }
+
+  GraphicsPresentQueueFramilyIndices queueFamilyIndices;
+
+  std::vector<VkQueueFamilyProperties> queueFamilyProperties;
+  queueFamilyProperties.resize(queueFamilyPropertiesCount);
+  vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyPropertiesCount,
+                                           queueFamilyProperties.data());
+  uint32_t i = 0;
+  for (const auto &queueFamilyProperty : queueFamilyProperties) {
+    VkBool32 presentable;
+    if (queueFamilyProperty.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+      queueFamilyIndices.graphicsFamilyIndice = i;
+      queueFamilyIndices.graphicsFamilyQueueCount =
+          queueFamilyProperty.queueCount;
+    }
+    vkGetPhysicalDeviceSurfaceSupportKHR(device, i, *surface, &presentable);
+    if (presentable == true) {
+      queueFamilyIndices.presentFamilyIndice = i;
+      queueFamilyIndices.presentFamilyQueueCount =
+          queueFamilyProperty.queueCount;
+    }
+
+    if (queueFamilyIndices.isComplete()) {
+      break;
+    }
+    i++;
+  }
+  return queueFamilyIndices;
+}
+
 std::optional<uint32_t> QueueFamilyIndices::getFamilyIndice(VkQueueFlags flag) {
   std::optional<uint32_t> data;
   uint32_t i = 0;

@@ -1,21 +1,61 @@
 #include "../header/drawing.hpp"
 
+Color Color::Red() {
+  Color color{};
+  color.red = 1;
+  color.green = 0;
+  color.blue = 0;
+  color.alpha = 1;
+  return color;
+}
+Color Color::Green() {
+  Color color{};
+  color.red = 0;
+  color.green = 1;
+  color.blue = 0;
+  color.alpha = 1;
+  return color;
+}
+Color Color::Blue() {
+  Color color{};
+  color.red = 0;
+  color.green = 0;
+  color.blue = 1;
+  color.alpha = 1;
+  return color;
+}
+
+Color color(float red, float green, float blue, float alpha) {
+  Color color{};
+  color.red = red;
+  color.green = green;
+  color.blue = blue;
+  color.alpha = alpha;
+  return color;
+}
+
+void Drawing::setBackgroundColor(Color color) { backgroundColor = color; }
+void Drawing::setBackgroundColor(float r, float g, float b, float a) {
+  backgroundColor = color(r, g, b, a);
+}
 void Drawing::drawFrame(VkDevice device, VkQueue graphicsQueue,
                         VkQueue presentQueue, VkSwapchainKHR swapChain,
                         VkRenderPass renderPass, VkExtent2D extent,
                         VkPipeline graphicsPipeline) {
-  vkWaitForFences(device, 1, &inFlightFence, VK_TRUE, UINT64_MAX);
-  vkResetFences(device, 1, &inFlightFence);
+  vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE,
+                  UINT64_MAX);
+  vkResetFences(device, 1, &inFlightFences[currentFrame]);
   uint32_t imageIndex;
-  vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imageAvailableSemaphore,
-                        VK_NULL_HANDLE, &imageIndex);
-  vkResetCommandBuffer(commandBuffer, 0);
-  recordCommandBuffer(commandBuffer, imageIndex, renderPass, extent,
-                      graphicsPipeline);
+  vkAcquireNextImageKHR(device, swapChain, UINT64_MAX,
+                        imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE,
+                        &imageIndex);
+  vkResetCommandBuffer(commandBuffer[currentFrame], 0);
+  recordCommandBuffer(commandBuffer[currentFrame], imageIndex, renderPass,
+                      extent, graphicsPipeline);
   VkSubmitInfo submitInfo{};
   submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-  VkSemaphore waitSemaphores[] = {imageAvailableSemaphore};
+  VkSemaphore waitSemaphores[] = {imageAvailableSemaphores[currentFrame]};
   VkPipelineStageFlags waitStages[] = {
       VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
   submitInfo.waitSemaphoreCount = 1;
@@ -23,13 +63,13 @@ void Drawing::drawFrame(VkDevice device, VkQueue graphicsQueue,
   submitInfo.pWaitDstStageMask = waitStages;
 
   submitInfo.commandBufferCount = 1;
-  submitInfo.pCommandBuffers = &commandBuffer;
-  VkSemaphore signalSemaphores[] = {renderFinishedSemaphore};
+  submitInfo.pCommandBuffers = &commandBuffer[currentFrame];
+  VkSemaphore signalSemaphores[] = {renderFinishedSemaphores[currentFrame]};
   submitInfo.signalSemaphoreCount = 1;
   submitInfo.pSignalSemaphores = signalSemaphores;
 
-  if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFence) !=
-      VK_SUCCESS) {
+  if (vkQueueSubmit(graphicsQueue, 1, &submitInfo,
+                    inFlightFences[currentFrame]) != VK_SUCCESS) {
     throw std::runtime_error("failed to submit draw command buffer!");
   }
 
@@ -44,22 +84,30 @@ void Drawing::drawFrame(VkDevice device, VkQueue graphicsQueue,
   presentInfo.pSwapchains = swapChains;
   presentInfo.pImageIndices = &imageIndex;
   vkQueuePresentKHR(presentQueue, &presentInfo);
+  currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
 void Drawing::createSyncObjects(VkDevice device) {
+  imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+  renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+  inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+
   VkSemaphoreCreateInfo semaphoreInfo{};
   semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
   VkFenceCreateInfo fenceInfo{};
   fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
   fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-  if (vkCreateSemaphore(device, &semaphoreInfo, nullptr,
-                        &imageAvailableSemaphore) != VK_SUCCESS ||
-      vkCreateSemaphore(device, &semaphoreInfo, nullptr,
-                        &renderFinishedSemaphore) != VK_SUCCESS ||
-      vkCreateFence(device, &fenceInfo, nullptr, &inFlightFence) !=
-          VK_SUCCESS) {
-    throw std::runtime_error("failed to create semaphores!");
+
+  for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    if (vkCreateSemaphore(device, &semaphoreInfo, nullptr,
+                          &imageAvailableSemaphores[i]) != VK_SUCCESS ||
+        vkCreateSemaphore(device, &semaphoreInfo, nullptr,
+                          &renderFinishedSemaphores[i]) != VK_SUCCESS ||
+        vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences[i]) !=
+            VK_SUCCESS) {
+      throw std::runtime_error("failed to create semaphores!");
+    }
   }
 }
 void Drawing::createFramebuffers(VkDevice device, VkExtent2D extent,
@@ -107,18 +155,19 @@ void Drawing::createCommandPool(VkDevice device, VkPhysicalDevice pdevice,
   std::cout << "Created Command Pool" << std::endl;
 }
 
-void Drawing::createCommandBuffer(VkDevice device) {
+void Drawing::createCommandBuffers(VkDevice device) {
+  commandBuffer.resize(MAX_FRAMES_IN_FLIGHT);
   VkCommandBufferAllocateInfo allocInfo{};
   allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
   allocInfo.commandPool = commandPool;
   allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-  allocInfo.commandBufferCount = 1;
+  allocInfo.commandBufferCount = (uint32_t)commandBuffer.size();
 
-  if (vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer) !=
+  if (vkAllocateCommandBuffers(device, &allocInfo, commandBuffer.data()) !=
       VK_SUCCESS) {
     throw std::runtime_error("failed to allocate command buffers!");
   }
-  std::cout << "Created Command Buffer" << std::endl;
+  std::cout << "Created Command Buffers" << std::endl;
 }
 
 void Drawing::recordCommandBuffer(VkCommandBuffer commandBuffer,
@@ -137,7 +186,8 @@ void Drawing::recordCommandBuffer(VkCommandBuffer commandBuffer,
   renderPassInfo.framebuffer = swapChainFramebuffers[imageIndex];
   renderPassInfo.renderArea.offset = {0, 0};
   renderPassInfo.renderArea.extent = extent;
-  VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
+  VkClearValue clearColor = {{{backgroundColor.red, backgroundColor.green,
+                               backgroundColor.blue, backgroundColor.alpha}}};
   renderPassInfo.clearValueCount = 1;
   renderPassInfo.pClearValues = &clearColor;
   vkCmdBeginRenderPass(commandBuffer, &renderPassInfo,
