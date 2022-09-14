@@ -13,11 +13,22 @@ void Program::run() {
   renderPass.createRenderPass(setup.pDevice, presentation.swapChainImageFormat);
   graphicsPipeline.createGraphicsPipeline(
       setup.pDevice, presentation.swapChainExtent, renderPass.renderPass);
+  drawing.createFramebuffers(setup.pDevice, presentation.swapChainExtent,
+                             renderPass.renderPass,
+                             presentation.swapChainImageViews);
+  drawing.createCommandPool(setup.pDevice, setup.pPhysialDevice,
+                            setup.deviceQueueFlags, &presentation.surface);
+  drawing.createCommandBuffer(setup.pDevice);
   setup.mainLoop();
   cleanup();
 }
 
 void Program::cleanup() {
+  vkDestroyCommandPool(setup.pDevice, drawing.commandPool, nullptr);
+
+  for (auto framebuffer : drawing.swapChainFramebuffers) {
+    vkDestroyFramebuffer(setup.pDevice, framebuffer, nullptr);
+  }
   vkDestroyPipeline(setup.pDevice, graphicsPipeline.graphicsPipeline, nullptr);
   vkDestroyPipelineLayout(setup.pDevice, graphicsPipeline.pipelineLayout,
                           nullptr);

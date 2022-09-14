@@ -32,5 +32,7 @@ void RenderPass::createRenderPass(VkDevice device,
   if (vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass) !=
       VK_SUCCESS) {
     throw std::runtime_error("failed to create render pass!");
+  } else {
+    std::cout << "Created Render pass" << std::endl;
   }
 }

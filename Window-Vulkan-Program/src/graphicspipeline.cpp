@@ -157,6 +157,8 @@ void GraphicsPipeline::createGraphicsPipeline(VkDevice device,
   if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo,
                                 nullptr, &graphicsPipeline) != VK_SUCCESS) {
     throw std::runtime_error("failed to create graphics pipeline!");
+  } else {
+    std::cout << "Created Graphics pipeline" << std::endl;
   }
 
   vkDestroyShaderModule(device, fragShaderModule, nullptr);

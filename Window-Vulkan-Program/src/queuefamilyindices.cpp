@@ -1,5 +1,18 @@
 #include "../header/queuefamilyindices.hpp"
-
+std::optional<uint32_t> QueueFamilyIndices::getFamilyIndice(VkQueueFlags flag) {
+  std::optional<uint32_t> data;
+  uint32_t i = 0;
+  for (const auto &f : familyFlags) {
+    if (f == flag) {
+      break;
+    }
+    i++;
+  }
+  if (i < familyFlags.size()) {
+    data = familyIndices.at(i);
+  }
+  return data;
+}
 void QueueFamilyIndices::setQueueFlags(std::vector<VkQueueFlags> flags) {
   for (const auto &flag : flags) {
     familyFlags.push_back(flag);

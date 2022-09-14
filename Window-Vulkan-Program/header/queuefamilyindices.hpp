@@ -14,6 +14,7 @@ struct QueueFamilyIndices {
   std::optional<uint32_t> presentFamily;
 
   void setQueueFlags(std::vector<VkQueueFlags> flags);
+  std::optional<uint32_t> getFamilyIndice(VkQueueFlags flag);
   VkBool32 isComplete();
 };
 
