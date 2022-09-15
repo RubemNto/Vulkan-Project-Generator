@@ -23,7 +23,6 @@ class Drawing {
 public:
   uint32_t currentFrame = 0;
   Color backgroundColor;
-  std::vector<VkFramebuffer> swapChainFramebuffers;
   VkCommandPool commandPool;
   std::vector<VkCommandBuffer> commandBuffer;
 
@@ -34,18 +33,18 @@ public:
   void setBackgroundColor(Color color);
   void setBackgroundColor(float r, float g, float b, float a);
 
-  void createFramebuffers(VkDevice device, VkExtent2D extent,
-                          VkRenderPass renderPass,
-                          std::vector<VkImageView> imageViews);
   void createCommandPool(VkDevice device, VkPhysicalDevice pdevice,
                          std::vector<VkQueueFlags> queueFlags,
                          VkSurfaceKHR *surface);
   void createCommandBuffers(VkDevice device);
   void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex,
                            VkRenderPass renderPass, VkExtent2D extent,
-                           VkPipeline graphicsPipeline);
+                           VkPipeline graphicsPipeline,
+                           std::vector<VkFramebuffer> swapChainFramebuffers);
   void drawFrame(VkDevice device, VkQueue graphicsQueue, VkQueue presentQueue,
-                 VkSwapchainKHR swapChain, VkRenderPass renderPass,
-                 VkExtent2D extent, VkPipeline graphicsPipeline);
+                 VkSwapchainKHR swapChain,
+                 std::vector<VkFramebuffer> swapChainFramebuffers,
+                 VkRenderPass renderPass, VkExtent2D extent,
+                 VkPipeline graphicsPipeline);
   void createSyncObjects(VkDevice device);
 };

@@ -4,6 +4,7 @@
 #include "../header/presentation.hpp"
 #include "../header/renderpass.hpp"
 #include "../header/setup.hpp"
+#include "../header/swapchain.hpp"
 class Program {
 public:
   void run();
@@ -13,6 +14,7 @@ public:
                 VkPipeline graphicsPipeline);
 
 private:
+  SwapChain swapChain;
   Setup setup;
   Presentation presentation;
   GraphicsPipeline graphicsPipeline;

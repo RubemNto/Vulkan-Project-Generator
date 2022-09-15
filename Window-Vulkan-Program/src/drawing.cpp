@@ -40,6 +40,7 @@ void Drawing::setBackgroundColor(float r, float g, float b, float a) {
 }
 void Drawing::drawFrame(VkDevice device, VkQueue graphicsQueue,
                         VkQueue presentQueue, VkSwapchainKHR swapChain,
+                        std::vector<VkFramebuffer> swapChainFramebuffers,
                         VkRenderPass renderPass, VkExtent2D extent,
                         VkPipeline graphicsPipeline) {
   vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE,
@@ -51,7 +52,7 @@ void Drawing::drawFrame(VkDevice device, VkQueue graphicsQueue,
                         &imageIndex);
   vkResetCommandBuffer(commandBuffer[currentFrame], 0);
   recordCommandBuffer(commandBuffer[currentFrame], imageIndex, renderPass,
-                      extent, graphicsPipeline);
+                      extent, graphicsPipeline, swapChainFramebuffers);
   VkSubmitInfo submitInfo{};
   submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
@@ -110,30 +111,6 @@ void Drawing::createSyncObjects(VkDevice device) {
     }
   }
 }
-void Drawing::createFramebuffers(VkDevice device, VkExtent2D extent,
-                                 VkRenderPass renderPass,
-                                 std::vector<VkImageView> imageViews) {
-  swapChainFramebuffers.resize(imageViews.size());
-  for (size_t i = 0; i < imageViews.size(); i++) {
-    VkImageView attachments[] = {imageViews[i]};
-
-    VkFramebufferCreateInfo framebufferInfo{};
-    framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-    framebufferInfo.renderPass = renderPass;
-    framebufferInfo.attachmentCount = 1;
-    framebufferInfo.pAttachments = attachments;
-    framebufferInfo.width = extent.width;
-    framebufferInfo.height = extent.height;
-    framebufferInfo.layers = 1;
-
-    if (vkCreateFramebuffer(device, &framebufferInfo, nullptr,
-                            &swapChainFramebuffers[i]) != VK_SUCCESS) {
-      throw std::runtime_error("failed to create framebuffer!");
-    }
-  }
-
-  std::cout << "Created Frame Buffers" << std::endl;
-}
 
 void Drawing::createCommandPool(VkDevice device, VkPhysicalDevice pdevice,
                                 std::vector<VkQueueFlags> queueFlags,
@@ -170,10 +147,10 @@ void Drawing::createCommandBuffers(VkDevice device) {
   std::cout << "Created Command Buffers" << std::endl;
 }
 
-void Drawing::recordCommandBuffer(VkCommandBuffer commandBuffer,
-                                  uint32_t imageIndex, VkRenderPass renderPass,
-                                  VkExtent2D extent,
-                                  VkPipeline graphicsPipeline) {
+void Drawing::recordCommandBuffer(
+    VkCommandBuffer commandBuffer, uint32_t imageIndex, VkRenderPass renderPass,
+    VkExtent2D extent, VkPipeline graphicsPipeline,
+    std::vector<VkFramebuffer> swapChainFramebuffers) {
   VkCommandBufferBeginInfo beginInfo{};
   beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
