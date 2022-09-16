@@ -1,4 +1,6 @@
 #pragma once
+#include "../header/helperFunctions.hpp"
+
 #include <array>
 #include <glm/glm.hpp>
 #include <iostream>
@@ -6,6 +8,7 @@
 #include <string.h>
 #include <vector>
 #include <vulkan/vulkan.h>
+
 struct VertexColor {
   glm::vec3 position;
   glm::vec3 color;
@@ -90,46 +93,35 @@ VkVertexInputBindingDescription getVertexBindingDescription(uint32_t binding) {
 }
 
 class VertexBuffer {
-private:
-  uint32_t findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter,
-                          VkMemoryPropertyFlags properties);
-
 public:
   VkBuffer buffer;
   VkDeviceMemory bufferMemory;
 
   template <typename Vertex>
-  void createVertexBuffer(std::vector<Vertex> vertices,
+  void createVertexBuffer(VkQueue graphicsQueue, VkCommandPool comamndPool,
+                          std::vector<Vertex> vertices,
                           VkPhysicalDevice physicalDevice, VkDevice device,
                           VkDeviceSize bufferSize) {
-    VkBufferCreateInfo createInfo{};
-    createInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    createInfo.size = bufferSize;
-    createInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-    createInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-    if (vkCreateBuffer(device, &createInfo, nullptr, &buffer) != VK_SUCCESS) {
-      throw std::runtime_error("failed to create vertex buffer!");
-    }
-    VkMemoryRequirements memoryRequirements;
-    vkGetBufferMemoryRequirements(device, buffer, &memoryRequirements);
-
-    VkMemoryAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize = memoryRequirements.size;
-    allocInfo.memoryTypeIndex =
-        findMemoryType(physicalDevice, memoryRequirements.memoryTypeBits,
-                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                           VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-    if (vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory) !=
-        VK_SUCCESS) {
-      throw std::runtime_error("failed to allocate vertex buffer memory!");
-    }
-    vkBindBufferMemory(device, buffer, bufferMemory, 0);
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    Helper::createBuffer(physicalDevice, device, bufferSize,
+                         VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                             VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                         stagingBuffer, stagingBufferMemory);
 
     void *data;
-    vkMapMemory(device, bufferMemory, 0, createInfo.size, 0, &data);
-    memcpy(data, vertices.data(), (size_t)createInfo.size);
-    vkUnmapMemory(device, bufferMemory);
+    vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
+    memcpy(data, vertices.data(), (size_t)bufferSize);
+    vkUnmapMemory(device, stagingBufferMemory);
+
+    Helper::createBuffer(
+        physicalDevice, device, bufferSize,
+        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, buffer, bufferMemory);
+    Helper::copyBuffer(device, graphicsQueue, comamndPool, stagingBuffer,
+                       buffer, bufferSize);
+    vkDestroyBuffer(device, stagingBuffer, nullptr);
+    vkFreeMemory(device, stagingBufferMemory, nullptr);
   }
 };

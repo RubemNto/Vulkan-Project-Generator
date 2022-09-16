@@ -9,14 +9,12 @@
 class Program {
 public:
   const std::vector<VertexColor> vertices = {
-      {{0.0f, -0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
+      {{0.5f, -0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
       {{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-      {{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}}};
+      {{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+  };
   void run();
-  void mainLoop(GLFWwindow *window, VkDevice device, VkQueue graphicsQueue,
-                VkQueue presentQueue, VkSwapchainKHR swapChain,
-                VkExtent2D extent, VkRenderPass renderPass,
-                VkPipeline graphicsPipeline);
+  void mainLoop();
 
 private:
   VertexBuffer vertexBuffer;

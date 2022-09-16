@@ -1,20 +1,18 @@
 #include "../header/program.hpp"
 
-void Program::mainLoop(GLFWwindow *window, VkDevice device,
-                       VkQueue graphicsQueue, VkQueue presentQueue,
-                       VkSwapchainKHR swapChain, VkExtent2D extent,
-                       VkRenderPass renderPass, VkPipeline graphicsPipeline) {
+void Program::mainLoop() {
   Color bg = color(0.0, 0.1, 0.1, 1.0);
   drawing.setBackgroundColor(bg);
-  while (!glfwWindowShouldClose(window)) {
+  while (!glfwWindowShouldClose(setup.window)) {
     glfwPollEvents();
-    drawing.drawFrame(device, graphicsQueue, presentQueue, swapChain,
-                      this->swapChain.swapChainFramebuffers,
-                      static_cast<uint32_t>(vertices.size()),
-                      vertexBuffer.buffer, renderPass, extent,
-                      graphicsPipeline);
+    drawing.drawFrame(
+        setup.pDevice, setup.pDeviceQueues.at(0), setup.pDeviceQueues.at(1),
+        swapChain.swapChain, swapChain.swapChainFramebuffers,
+        static_cast<uint32_t>(vertices.size()), vertexBuffer.buffer,
+        renderPass.renderPass, swapChain.swapChainExtent,
+        graphicsPipeline.graphicsPipeline);
   }
-  vkDeviceWaitIdle(device);
+  vkDeviceWaitIdle(setup.pDevice);
 }
 
 void Program::run() {
@@ -37,14 +35,12 @@ void Program::run() {
   drawing.createCommandPool(setup.pDevice, setup.pPhysialDevice,
                             setup.deviceQueueFlags, &presentation.surface);
   vertexBuffer.createVertexBuffer<VertexColor>(
-      vertices, setup.pPhysialDevice, setup.pDevice,
+      setup.pDeviceQueues.at(0), drawing.commandPool, vertices,
+      setup.pPhysialDevice, setup.pDevice,
       sizeof(vertices[0]) * vertices.size());
   drawing.createCommandBuffers(setup.pDevice);
   drawing.createSyncObjects(setup.pDevice);
-  mainLoop(setup.window, setup.pDevice, setup.pDeviceQueues.at(0),
-           setup.pDeviceQueues.at(1), swapChain.swapChain,
-           swapChain.swapChainExtent, renderPass.renderPass,
-           graphicsPipeline.graphicsPipeline);
+  mainLoop();
   cleanup();
 }
 
