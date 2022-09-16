@@ -9,7 +9,9 @@ void Program::mainLoop(GLFWwindow *window, VkDevice device,
   while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();
     drawing.drawFrame(device, graphicsQueue, presentQueue, swapChain,
-                      this->swapChain.swapChainFramebuffers, renderPass, extent,
+                      this->swapChain.swapChainFramebuffers,
+                      static_cast<uint32_t>(vertices.size()),
+                      vertexBuffer.buffer, renderPass, extent,
                       graphicsPipeline);
   }
   vkDeviceWaitIdle(device);
@@ -34,8 +36,11 @@ void Program::run() {
                                swapChain.swapChainImageViews);
   drawing.createCommandPool(setup.pDevice, setup.pPhysialDevice,
                             setup.deviceQueueFlags, &presentation.surface);
-  drawing.createSyncObjects(setup.pDevice);
+  vertexBuffer.createVertexBuffer<VertexColor>(
+      vertices, setup.pPhysialDevice, setup.pDevice,
+      sizeof(vertices[0]) * vertices.size());
   drawing.createCommandBuffers(setup.pDevice);
+  drawing.createSyncObjects(setup.pDevice);
   mainLoop(setup.window, setup.pDevice, setup.pDeviceQueues.at(0),
            setup.pDeviceQueues.at(1), swapChain.swapChain,
            swapChain.swapChainExtent, renderPass.renderPass,
@@ -44,6 +49,8 @@ void Program::run() {
 }
 
 void Program::cleanup() {
+  vkDestroyBuffer(setup.pDevice, vertexBuffer.buffer, nullptr);
+  vkFreeMemory(setup.pDevice, vertexBuffer.bufferMemory, nullptr);
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
     vkDestroySemaphore(setup.pDevice, drawing.renderFinishedSemaphores[i],
                        nullptr);

@@ -5,8 +5,13 @@
 #include "../header/renderpass.hpp"
 #include "../header/setup.hpp"
 #include "../header/swapchain.hpp"
+#include "../header/vertexbuffer.hpp"
 class Program {
 public:
+  const std::vector<VertexColor> vertices = {
+      {{0.0f, -0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
+      {{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+      {{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}}};
   void run();
   void mainLoop(GLFWwindow *window, VkDevice device, VkQueue graphicsQueue,
                 VkQueue presentQueue, VkSwapchainKHR swapChain,
@@ -14,6 +19,7 @@ public:
                 VkPipeline graphicsPipeline);
 
 private:
+  VertexBuffer vertexBuffer;
   SwapChain swapChain;
   Setup setup;
   Presentation presentation;
