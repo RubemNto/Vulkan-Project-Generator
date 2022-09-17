@@ -8,8 +8,9 @@ void Program::mainLoop() {
     drawing.drawFrame(
         setup.pDevice, setup.pDeviceQueues.at(0), setup.pDeviceQueues.at(1),
         swapChain.swapChain, swapChain.swapChainFramebuffers,
-        static_cast<uint32_t>(vertices.size()), vertexBuffer.buffer,
-        renderPass.renderPass, swapChain.swapChainExtent,
+        static_cast<uint32_t>(vertices.size()),
+        static_cast<uint32_t>(indices.size()), vertexBuffer.buffer,
+        indexbuffer.buffer, renderPass.renderPass, swapChain.swapChainExtent,
         graphicsPipeline.graphicsPipeline);
   }
   vkDeviceWaitIdle(setup.pDevice);
@@ -38,6 +39,9 @@ void Program::run() {
       setup.pDeviceQueues.at(0), drawing.commandPool, vertices,
       setup.pPhysialDevice, setup.pDevice,
       sizeof(vertices[0]) * vertices.size());
+  indexbuffer.createIndexBuffer<uint32_t>(
+      setup.pDeviceQueues.at(0), drawing.commandPool, indices,
+      setup.pPhysialDevice, setup.pDevice, sizeof(indices[0]) * indices.size());
   drawing.createCommandBuffers(setup.pDevice);
   drawing.createSyncObjects(setup.pDevice);
   mainLoop();
@@ -45,6 +49,8 @@ void Program::run() {
 }
 
 void Program::cleanup() {
+  vkDestroyBuffer(setup.pDevice, indexbuffer.buffer, nullptr);
+  vkFreeMemory(setup.pDevice, indexbuffer.bufferMemory, nullptr);
   vkDestroyBuffer(setup.pDevice, vertexBuffer.buffer, nullptr);
   vkFreeMemory(setup.pDevice, vertexBuffer.bufferMemory, nullptr);
   for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {

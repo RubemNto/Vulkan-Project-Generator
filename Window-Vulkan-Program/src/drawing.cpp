@@ -41,7 +41,8 @@ void Drawing::setBackgroundColor(float r, float g, float b, float a) {
 void Drawing::drawFrame(VkDevice device, VkQueue graphicsQueue,
                         VkQueue presentQueue, VkSwapchainKHR swapChain,
                         std::vector<VkFramebuffer> swapChainFramebuffers,
-                        uint32_t vertexCount, VkBuffer vertexBuffer,
+                        uint32_t vertexCount, uint32_t indicesCount,
+                        VkBuffer vertexBuffer, VkBuffer indexBuffer,
                         VkRenderPass renderPass, VkExtent2D extent,
                         VkPipeline graphicsPipeline) {
   vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE,
@@ -52,9 +53,9 @@ void Drawing::drawFrame(VkDevice device, VkQueue graphicsQueue,
                         imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE,
                         &imageIndex);
   vkResetCommandBuffer(commandBuffer[currentFrame], 0);
-  recordCommandBuffer(vertexCount, commandBuffer[currentFrame], vertexBuffer,
-                      imageIndex, renderPass, extent, graphicsPipeline,
-                      swapChainFramebuffers);
+  recordCommandBuffer(vertexCount, indicesCount, commandBuffer[currentFrame],
+                      vertexBuffer, indexBuffer, imageIndex, renderPass, extent,
+                      graphicsPipeline, swapChainFramebuffers);
   VkSubmitInfo submitInfo{};
   submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
@@ -150,9 +151,9 @@ void Drawing::createCommandBuffers(VkDevice device) {
 }
 
 void Drawing::recordCommandBuffer(
-    uint32_t vertexCount, VkCommandBuffer commandBuffer, VkBuffer vertexBuffer,
-    uint32_t imageIndex, VkRenderPass renderPass, VkExtent2D extent,
-    VkPipeline graphicsPipeline,
+    uint32_t vertexCount, uint32_t indicesCount, VkCommandBuffer commandBuffer,
+    VkBuffer vertexBuffer, VkBuffer indexBuffer, uint32_t imageIndex,
+    VkRenderPass renderPass, VkExtent2D extent, VkPipeline graphicsPipeline,
     std::vector<VkFramebuffer> swapChainFramebuffers) {
   VkCommandBufferBeginInfo beginInfo{};
   beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -178,6 +179,7 @@ void Drawing::recordCommandBuffer(
   VkDeviceSize offsets[] = {0};
 
   vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+  vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
   VkViewport viewport{};
   viewport.x = 0.0f;
@@ -192,7 +194,7 @@ void Drawing::recordCommandBuffer(
   scissor.offset = {0, 0};
   scissor.extent = extent;
   vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-  vkCmdDraw(commandBuffer, vertexCount, 1, 0, 0);
+  vkCmdDrawIndexed(commandBuffer, indicesCount, 1, 0, 0, 0);
 
   vkCmdEndRenderPass(commandBuffer);
   if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
