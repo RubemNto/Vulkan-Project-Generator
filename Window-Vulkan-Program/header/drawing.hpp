@@ -37,20 +37,32 @@ public:
                          std::vector<VkQueueFlags> queueFlags,
                          VkSurfaceKHR *surface);
   void createCommandBuffers(VkDevice device);
-  void recordCommandBuffer(uint32_t vertexCount, uint32_t indicesCount,
-                           VkCommandBuffer commandBuffer, VkBuffer vertexBuffer,
-                           VkBuffer indexBuffer, uint32_t imageIndex,
-                           VkRenderPass renderPass, VkExtent2D extent,
-                           VkPipeline graphicsPipeline,
-                           std::vector<VkFramebuffer> swapChainFramebuffers);
 
-  void drawFrame(VkDevice device, VkQueue graphicsQueue, VkQueue presentQueue,
-                 VkSwapchainKHR swapChain,
-                 std::vector<VkFramebuffer> swapChainFramebuffers,
-                 uint32_t vertexCount, uint32_t indicesCount,
-                 VkBuffer vertexBuffer, VkBuffer indexBuffer,
-                 VkRenderPass renderPass, VkExtent2D extent,
-                 VkPipeline graphicsPipeline);
+  void recordVerticesCommandBuffer(
+      uint32_t verticesCount, VkCommandBuffer commandBuffer,
+      VkBuffer vertexBuffer, uint32_t imageIndex, VkRenderPass renderPass,
+      VkExtent2D extent, VkPipeline graphicsPipeline,
+      std::vector<VkFramebuffer> swapChainFramebuffers);
+
+  void drawVerticesFrame(VkDevice device, VkQueue graphicsQueue,
+                         VkQueue presentQueue, VkSwapchainKHR swapChain,
+                         std::vector<VkFramebuffer> swapChainFramebuffers,
+                         uint32_t verticesCount, VkBuffer vertexBuffer,
+                         VkRenderPass renderPass, VkExtent2D extent,
+                         VkPipeline graphicsPipeline);
+
+  void recordElementsCommandBuffer(
+      uint32_t indicesCount, VkCommandBuffer commandBuffer,
+      VkBuffer vertexBuffer, VkBuffer indexBuffer, uint32_t imageIndex,
+      VkRenderPass renderPass, VkExtent2D extent, VkPipeline graphicsPipeline,
+      std::vector<VkFramebuffer> swapChainFramebuffers);
+
+  void drawElementsFrame(VkDevice device, VkQueue graphicsQueue,
+                         VkQueue presentQueue, VkSwapchainKHR swapChain,
+                         std::vector<VkFramebuffer> swapChainFramebuffers,
+                         uint32_t indicesCount, VkBuffer vertexBuffer,
+                         VkBuffer indexBuffer, VkRenderPass renderPass,
+                         VkExtent2D extent, VkPipeline graphicsPipeline);
 
   void createSyncObjects(VkDevice device);
 };

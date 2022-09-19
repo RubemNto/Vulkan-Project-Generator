@@ -5,10 +5,9 @@ void Program::mainLoop() {
   drawing.setBackgroundColor(bg);
   while (!glfwWindowShouldClose(setup.window)) {
     glfwPollEvents();
-    drawing.drawFrame(
+    drawing.drawElementsFrame(
         setup.pDevice, setup.pDeviceQueues.at(0), setup.pDeviceQueues.at(1),
         swapChain.swapChain, swapChain.swapChainFramebuffers,
-        static_cast<uint32_t>(vertices.size()),
         static_cast<uint32_t>(indices.size()), vertexBuffer.buffer,
         indexbuffer.buffer, renderPass.renderPass, swapChain.swapChainExtent,
         graphicsPipeline.graphicsPipeline);
