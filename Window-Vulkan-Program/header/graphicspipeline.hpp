@@ -8,7 +8,8 @@
 class GraphicsPipeline {
 public:
   void createGraphicsPipeline(VkDevice device, VkExtent2D swapChainExtent,
-                              VkRenderPass renderPass);
+                              VkRenderPass renderPass,
+                              VkDescriptorSetLayout descriptorSetLayout);
 
   VkPipelineLayout pipelineLayout;
   VkPipeline graphicsPipeline;

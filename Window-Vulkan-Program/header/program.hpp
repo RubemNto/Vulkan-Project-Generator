@@ -6,8 +6,8 @@
 #include "../header/renderpass.hpp"
 #include "../header/setup.hpp"
 #include "../header/swapchain.hpp"
+#include "../header/uniformbuffer.hpp"
 #include "../header/vertexbuffer.hpp"
-
 class Program {
 public:
   const std::vector<VertexColor> vertices = {
@@ -23,7 +23,8 @@ public:
 
 private:
   VertexBuffer vertexBuffer;
-  IndexBuffer indexbuffer;
+  IndexBuffer indexBuffer;
+  UniformBuffer uniformBuffer;
   SwapChain swapChain;
   Setup setup;
   Presentation presentation;

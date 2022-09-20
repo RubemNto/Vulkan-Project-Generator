@@ -101,7 +101,9 @@ void Drawing::recordElementsCommandBuffer(
     uint32_t indicesCount, VkCommandBuffer commandBuffer, VkBuffer vertexBuffer,
     VkBuffer indexBuffer, uint32_t imageIndex, VkRenderPass renderPass,
     VkExtent2D extent, VkPipeline graphicsPipeline,
-    std::vector<VkFramebuffer> swapChainFramebuffers) {
+    std::vector<VkFramebuffer> swapChainFramebuffers,
+    VkPipelineLayout pipelineLayout,
+    std::vector<VkDescriptorSet> descriptorSets) {
   VkCommandBufferBeginInfo beginInfo{};
   beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
@@ -141,6 +143,10 @@ void Drawing::recordElementsCommandBuffer(
   scissor.offset = {0, 0};
   scissor.extent = extent;
   vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+  vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                          pipelineLayout, 0, 1, &descriptorSets[currentFrame],
+                          0, nullptr);
   vkCmdDrawIndexed(commandBuffer, indicesCount, 1, 0, 0, 0);
 
   vkCmdEndRenderPass(commandBuffer);
@@ -207,7 +213,9 @@ void Drawing::drawElementsFrame(
     VkDevice device, VkQueue graphicsQueue, VkQueue presentQueue,
     VkSwapchainKHR swapChain, std::vector<VkFramebuffer> swapChainFramebuffers,
     uint32_t indicesCount, VkBuffer vertexBuffer, VkBuffer indexBuffer,
-    VkRenderPass renderPass, VkExtent2D extent, VkPipeline graphicsPipeline) {
+    VkRenderPass renderPass, VkExtent2D extent, VkPipeline graphicsPipeline,
+    VkPipelineLayout pipelineLayout,
+    std::vector<VkDescriptorSet> descriptorSets, UniformBuffer uniformBuffer) {
   vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE,
                   UINT64_MAX);
   vkResetFences(device, 1, &inFlightFences[currentFrame]);
@@ -216,9 +224,11 @@ void Drawing::drawElementsFrame(
                         imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE,
                         &imageIndex);
   vkResetCommandBuffer(commandBuffer[currentFrame], 0);
+  uniformBuffer.updateUniformBuffer(device, currentFrame, 800 / 600.0);
   recordElementsCommandBuffer(indicesCount, commandBuffer[currentFrame],
                               vertexBuffer, indexBuffer, imageIndex, renderPass,
-                              extent, graphicsPipeline, swapChainFramebuffers);
+                              extent, graphicsPipeline, swapChainFramebuffers,
+                              pipelineLayout, descriptorSets);
   VkSubmitInfo submitInfo{};
   submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 

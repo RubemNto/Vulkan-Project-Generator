@@ -1,5 +1,6 @@
 #pragma once
 #include "../header/queuefamilyindices.hpp"
+#include "../header/uniformbuffer.hpp"
 #include <iostream>
 #include <vector>
 #include <vulkan/vulkan.h>
@@ -55,14 +56,19 @@ public:
       uint32_t indicesCount, VkCommandBuffer commandBuffer,
       VkBuffer vertexBuffer, VkBuffer indexBuffer, uint32_t imageIndex,
       VkRenderPass renderPass, VkExtent2D extent, VkPipeline graphicsPipeline,
-      std::vector<VkFramebuffer> swapChainFramebuffers);
+      std::vector<VkFramebuffer> swapChainFramebuffers,
+      VkPipelineLayout pipelineLayout,
+      std::vector<VkDescriptorSet> descriptorSets);
 
   void drawElementsFrame(VkDevice device, VkQueue graphicsQueue,
                          VkQueue presentQueue, VkSwapchainKHR swapChain,
                          std::vector<VkFramebuffer> swapChainFramebuffers,
                          uint32_t indicesCount, VkBuffer vertexBuffer,
                          VkBuffer indexBuffer, VkRenderPass renderPass,
-                         VkExtent2D extent, VkPipeline graphicsPipeline);
+                         VkExtent2D extent, VkPipeline graphicsPipeline,
+                         VkPipelineLayout pipelineLayout,
+                         std::vector<VkDescriptorSet> descriptorSets,
+                         UniformBuffer uniformBuffer);
 
   void createSyncObjects(VkDevice device);
 };
