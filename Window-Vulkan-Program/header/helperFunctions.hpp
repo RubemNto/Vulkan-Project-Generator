@@ -4,6 +4,9 @@
 #include <vulkan/vulkan.h>
 
 namespace Helper {
+void copyBufferToImage(VkDevice device, VkCommandPool commandPool,
+                       VkQueue graphicsQueue, VkBuffer buffer, VkImage image,
+                       uint32_t width, uint32_t height);
 void createBuffer(VkPhysicalDevice physicalDevice, VkDevice device,
                   VkDeviceSize size, VkBufferUsageFlags usage,
                   VkMemoryPropertyFlags properties, VkBuffer &buffer,
@@ -13,4 +16,9 @@ uint32_t findMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter,
 void copyBuffer(VkDevice device, VkQueue graphicsQueue,
                 VkCommandPool commandPool, VkBuffer srcBuffer,
                 VkBuffer dstBuffer, VkDeviceSize size);
+VkCommandBuffer beginSingleTimeCommands(VkDevice device,
+                                        VkCommandPool commandPool);
+void endSingleTimeCommands(VkDevice device, VkCommandPool commandPool,
+                           VkQueue graphicsQueue,
+                           VkCommandBuffer commandBuffer);
 } // namespace Helper

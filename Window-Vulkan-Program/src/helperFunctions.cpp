@@ -1,7 +1,28 @@
 #include "../header/helperFunctions.hpp"
-void Helper::copyBuffer(VkDevice device, VkQueue graphicsQueue,
-                        VkCommandPool commandPool, VkBuffer srcBuffer,
-                        VkBuffer dstBuffer, VkDeviceSize size) {
+void Helper::copyBufferToImage(VkDevice device, VkCommandPool commandPool,
+                               VkQueue graphicsQueue, VkBuffer buffer,
+                               VkImage image, uint32_t width, uint32_t height) {
+  VkCommandBuffer commandBuffer = beginSingleTimeCommands(device, commandPool);
+  VkBufferImageCopy region{};
+  region.bufferOffset = 0;
+  region.bufferRowLength = 0;
+  region.bufferImageHeight = 0;
+
+  region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+  region.imageSubresource.mipLevel = 0;
+  region.imageSubresource.baseArrayLayer = 0;
+  region.imageSubresource.layerCount = 1;
+
+  region.imageOffset = {0, 0, 0};
+  region.imageExtent = {width, height, 1};
+
+  vkCmdCopyBufferToImage(commandBuffer, buffer, image,
+                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+  endSingleTimeCommands(device, commandPool, graphicsQueue, commandBuffer);
+}
+
+VkCommandBuffer Helper::beginSingleTimeCommands(VkDevice device,
+                                                VkCommandPool commandPool) {
   VkCommandBufferAllocateInfo allocInfo{};
   allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
   allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -17,12 +38,13 @@ void Helper::copyBuffer(VkDevice device, VkQueue graphicsQueue,
 
   vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
-  VkBufferCopy copyRegion{};
-  copyRegion.srcOffset = 0; // Optional
-  copyRegion.dstOffset = 0; // Optional
-  copyRegion.size = size;
-  vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+  return commandBuffer;
+}
+void Helper::endSingleTimeCommands(VkDevice device, VkCommandPool commandPool,
+                                   VkQueue graphicsQueue,
+                                   VkCommandBuffer commandBuffer) {
   vkEndCommandBuffer(commandBuffer);
+
   VkSubmitInfo submitInfo{};
   submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
   submitInfo.commandBufferCount = 1;
@@ -32,6 +54,18 @@ void Helper::copyBuffer(VkDevice device, VkQueue graphicsQueue,
   vkQueueWaitIdle(graphicsQueue);
 
   vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
+}
+
+void Helper::copyBuffer(VkDevice device, VkQueue graphicsQueue,
+                        VkCommandPool commandPool, VkBuffer srcBuffer,
+                        VkBuffer dstBuffer, VkDeviceSize size) {
+  VkCommandBuffer commandBuffer = beginSingleTimeCommands(device, commandPool);
+
+  VkBufferCopy copyRegion{};
+  copyRegion.size = size;
+  vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+
+  endSingleTimeCommands(device, commandPool, graphicsQueue, commandBuffer);
 }
 uint32_t Helper::findMemoryType(VkPhysicalDevice physicalDevice,
                                 uint32_t typeFilter,

@@ -1,6 +1,7 @@
 #pragma once
 #include "../header/drawing.hpp"
 #include "../header/graphicspipeline.hpp"
+#include "../header/image.hpp"
 #include "../header/indexbuffer.hpp"
 #include "../header/presentation.hpp"
 #include "../header/renderpass.hpp"
@@ -22,6 +23,7 @@ public:
   void mainLoop();
 
 private:
+  Image image;
   VertexBuffer vertexBuffer;
   IndexBuffer indexBuffer;
   UniformBuffer uniformBuffer;

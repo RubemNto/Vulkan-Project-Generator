@@ -37,6 +37,9 @@ void Program::run() {
                                swapChain.swapChainImageViews);
   drawing.createCommandPool(setup.pDevice, setup.pPhysialDevice,
                             setup.deviceQueueFlags, &presentation.surface);
+  image.createTextureImage("assets/images/Square_funny.png",
+                           setup.pPhysialDevice, setup.pDevice,
+                           drawing.commandPool, setup.pDeviceQueues.at(0));
   vertexBuffer.createVertexBuffer<VertexColor>(
       setup.pDeviceQueues.at(0), drawing.commandPool, vertices,
       setup.pPhysialDevice, setup.pDevice,
@@ -60,6 +63,8 @@ void Program::run() {
 }
 
 void Program::cleanup() {
+  vkDestroyImage(setup.pDevice, image.textureImage, nullptr);
+  vkFreeMemory(setup.pDevice, image.textureImageMemory, nullptr);
   vkDestroyBuffer(setup.pDevice, indexBuffer.buffer, nullptr);
   vkFreeMemory(setup.pDevice, indexBuffer.bufferMemory, nullptr);
   vkDestroyBuffer(setup.pDevice, vertexBuffer.buffer, nullptr);
