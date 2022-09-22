@@ -106,8 +106,11 @@ Setup::checkDeviceSuitability(VkPhysicalDevice device, uint32_t minAPIVersion,
   }
 
   // get device Features
-  // VkPhysicalDeviceFeatures features;
-  // vkGetPhysicalDeviceFeatures(device, &features);
+  VkPhysicalDeviceFeatures features;
+  vkGetPhysicalDeviceFeatures(device, &features);
+  if (features.samplerAnisotropy == false) {
+    return VK_FALSE;
+  }
 
   // get device Queue Families
   QueueFamilyIndices queueFamilyIndices =
@@ -181,6 +184,8 @@ void Setup::createLogicalDevice(VkSurfaceKHR *surface) {
     queueInfo.pQueuePriorities = &queuePriority;
     queueCreateInfos.push_back(queueInfo);
   }
+  VkPhysicalDeviceFeatures deviceFeatures{};
+  deviceFeatures.samplerAnisotropy = VK_TRUE;
 
   VkDeviceCreateInfo createInfo{};
   createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -191,7 +196,6 @@ void Setup::createLogicalDevice(VkSurfaceKHR *surface) {
       static_cast<uint32_t>(deviceExtensions.size());
   createInfo.ppEnabledExtensionNames = deviceExtensions.data();
   createInfo.pEnabledFeatures = &deviceFeatures;
-
   if (enableValidationLayers) {
     createInfo.enabledLayerCount =
         static_cast<uint32_t>(validationLayers.size());

@@ -1,3 +1,4 @@
+#include "../header/helperFunctions.hpp"
 #include "../header/queuefamilyindices.hpp"
 #include "../header/swapchainsupportdetails.hpp"
 #define GLFW_INCLUDE_VULKAN

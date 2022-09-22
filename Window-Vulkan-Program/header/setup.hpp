@@ -39,7 +39,6 @@ public:
   VkPhysicalDevice pPhysialDevice;
   const std::vector<VkQueueFlags> deviceQueueFlags = {VK_QUEUE_GRAPHICS_BIT};
   const VkPhysicalDeviceType type = VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
-  VkPhysicalDeviceFeatures deviceFeatures = {};
 
   const std::vector<const char *> deviceExtensions = {
       VK_KHR_SWAPCHAIN_EXTENSION_NAME};

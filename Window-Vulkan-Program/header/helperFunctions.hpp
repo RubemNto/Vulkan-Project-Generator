@@ -4,6 +4,7 @@
 #include <vulkan/vulkan.h>
 
 namespace Helper {
+VkImageView createImageView(VkDevice device, VkImage image, VkFormat format);
 void copyBufferToImage(VkDevice device, VkCommandPool commandPool,
                        VkQueue graphicsQueue, VkBuffer buffer, VkImage image,
                        uint32_t width, uint32_t height);

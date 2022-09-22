@@ -6,7 +6,9 @@
 #include <vulkan/vulkan.h>
 class Image {
 public:
+  VkImageView textureImageView;
   VkImage textureImage;
+  VkSampler textureSampler;
   VkDeviceMemory textureImageMemory;
   void transitionImageLayout(VkDevice device, VkCommandPool commandPool,
                              VkQueue graphicsQueue, VkImage image,
@@ -17,6 +19,8 @@ public:
                    VkImageTiling tiling, VkImageUsageFlags usage,
                    VkMemoryPropertyFlags properties, VkImage &image,
                    VkDeviceMemory &imageMemory);
+  void createTextureSampler(VkDevice device, VkPhysicalDevice physicalDevice);
+  void createTextureImageView(VkDevice device);
   void createTextureImage(const char *imagePath,
                           VkPhysicalDevice physicalDevice, VkDevice device,
                           VkCommandPool commandPool, VkQueue graphicsQueue);
