@@ -26,8 +26,10 @@ public:
   VkDescriptorPool descriptorPool;
   std::vector<VkDescriptorSet> descriptorSets;
 
-  void createDescriptorPool(VkDevice device, uint32_t descriptorCount);
-  void createDescriptorSets(VkDevice device, uint32_t descriptorSetCount);
+  void createDescriptorPool(VkDevice device, uint32_t framesInFlight);
+  void createDescriptorSets(VkDevice device, uint32_t descriptorSetCount,
+                            VkImageView textureImageView,
+                            VkSampler textureSampler);
 
   void createDescriptorSetLayout(VkDevice device);
   void updateUniformBuffer(VkDevice device, uint32_t currentImage,

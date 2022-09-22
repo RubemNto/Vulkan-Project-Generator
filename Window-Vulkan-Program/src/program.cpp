@@ -40,7 +40,9 @@ void Program::run() {
   image.createTextureImage("assets/images/Square_funny.png",
                            setup.pPhysialDevice, setup.pDevice,
                            drawing.commandPool, setup.pDeviceQueues.at(0));
-  vertexBuffer.createVertexBuffer<VertexColor>(
+  image.createTextureImageView(setup.pDevice);
+  image.createTextureSampler(setup.pDevice, setup.pPhysialDevice);
+  vertexBuffer.createVertexBuffer<VertexColorTexture>(
       setup.pDeviceQueues.at(0), drawing.commandPool, vertices,
       setup.pPhysialDevice, setup.pDevice,
       sizeof(vertices[0]) * vertices.size());
@@ -50,11 +52,10 @@ void Program::run() {
   uniformBuffer.createUniformBuffer(setup.pPhysialDevice, setup.pDevice,
                                     sizeof(UniformBufferObject),
                                     MAX_FRAMES_IN_FLIGHT);
-  std::cout << "Created UniformBuffer" << std::endl;
   uniformBuffer.createDescriptorPool(setup.pDevice, MAX_FRAMES_IN_FLIGHT);
-  std::cout << "Created Descriptor Pool" << std::endl;
-  uniformBuffer.createDescriptorSets(setup.pDevice, MAX_FRAMES_IN_FLIGHT);
-  std::cout << "Created Descriptor Sets" << std::endl;
+  uniformBuffer.createDescriptorSets(setup.pDevice, MAX_FRAMES_IN_FLIGHT,
+                                     image.textureImageView,
+                                     image.textureSampler);
 
   drawing.createCommandBuffers(setup.pDevice);
   drawing.createSyncObjects(setup.pDevice);

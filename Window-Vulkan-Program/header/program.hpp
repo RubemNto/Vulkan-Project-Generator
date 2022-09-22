@@ -11,14 +11,13 @@
 #include "../header/vertexbuffer.hpp"
 class Program {
 public:
-  const std::vector<VertexColor> vertices = {
-      {{-0.5f, -0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
-      {{0.5f, -0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
-      {{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-      {{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-  };
+  const std::vector<VertexColorTexture> vertices = {
+      {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+      {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+      {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+      {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}};
 
-  const std::vector<uint32_t> indices = {0, 1, 2, 0, 2, 3};
+  const std::vector<uint32_t> indices = {0, 1, 2, 2, 3, 0};
   void run();
   void mainLoop();
 
