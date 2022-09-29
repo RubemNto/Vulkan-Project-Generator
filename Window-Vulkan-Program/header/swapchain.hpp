@@ -1,6 +1,7 @@
 #include "../header/helperFunctions.hpp"
 #include "../header/queuefamilyindices.hpp"
 #include "../header/swapchainsupportdetails.hpp"
+#include <array>
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <algorithm> // Necessary for std::clamp
@@ -20,7 +21,8 @@ public:
   std::vector<VkFramebuffer> swapChainFramebuffers;
   void createFramebuffers(VkDevice device, VkExtent2D extent,
                           VkRenderPass renderPass,
-                          std::vector<VkImageView> imageViews);
+                          std::vector<VkImageView> imageViews,
+                          VkImageView depthImageView);
   void createSwapChain(GLFWwindow *window, std::vector<VkQueueFlags> queueFlags,
                        VkPhysicalDevice pDevice, VkDevice lDevice,
                        VkSurfaceKHR surface);

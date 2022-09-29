@@ -27,16 +27,20 @@ void Program::run() {
                             setup.pPhysialDevice, setup.pDevice,
                             presentation.surface);
   swapChain.createImageViews(setup.pDevice);
-  renderPass.createRenderPass(setup.pDevice, swapChain.swapChainImageFormat);
+  renderPass.createRenderPass(setup.pPhysialDevice, setup.pDevice,
+                              swapChain.swapChainImageFormat, depthBuffer);
   uniformBuffer.createDescriptorSetLayout(setup.pDevice);
   graphicsPipeline.createGraphicsPipeline(
       setup.pDevice, swapChain.swapChainExtent, renderPass.renderPass,
       uniformBuffer.descriptorSetLayout);
-  swapChain.createFramebuffers(setup.pDevice, swapChain.swapChainExtent,
-                               renderPass.renderPass,
-                               swapChain.swapChainImageViews);
   drawing.createCommandPool(setup.pDevice, setup.pPhysialDevice,
                             setup.deviceQueueFlags, &presentation.surface);
+  depthBuffer.createDepthResources(
+      setup.pPhysialDevice, setup.pDevice, image, swapChain.swapChainExtent,
+      drawing.commandPool, setup.pDeviceQueues.at(0));
+  swapChain.createFramebuffers(
+      setup.pDevice, swapChain.swapChainExtent, renderPass.renderPass,
+      swapChain.swapChainImageViews, depthBuffer.depthImageView);
   image.createTextureImage("assets/images/Square_funny.png",
                            setup.pPhysialDevice, setup.pDevice,
                            drawing.commandPool, setup.pDeviceQueues.at(0));

@@ -1,16 +1,16 @@
 #include "../header/swapchain.hpp"
 void SwapChain::createFramebuffers(VkDevice device, VkExtent2D extent,
                                    VkRenderPass renderPass,
-                                   std::vector<VkImageView> imageViews) {
+                                   std::vector<VkImageView> imageViews,
+                                   VkImageView depthImageView) {
   swapChainFramebuffers.resize(imageViews.size());
   for (size_t i = 0; i < imageViews.size(); i++) {
-    VkImageView attachments[] = {imageViews[i]};
-
+    std::array<VkImageView, 2> attachments = {imageViews[i], depthImageView};
     VkFramebufferCreateInfo framebufferInfo{};
     framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
     framebufferInfo.renderPass = renderPass;
-    framebufferInfo.attachmentCount = 1;
-    framebufferInfo.pAttachments = attachments;
+    framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+    framebufferInfo.pAttachments = attachments.data();
     framebufferInfo.width = extent.width;
     framebufferInfo.height = extent.height;
     framebufferInfo.layers = 1;
@@ -144,7 +144,8 @@ void SwapChain::createImageViews(VkDevice device) {
   swapChainImageViews.resize(swapChainImages.size());
   for (size_t i = 0; i < swapChainImages.size(); i++) {
     swapChainImageViews[i] = Helper::createImageView(device, swapChainImages[i],
-                                                     swapChainImageFormat);
+                                                     swapChainImageFormat,
+                                                     VK_IMAGE_ASPECT_COLOR_BIT);
   }
   std::cout << "Created Image Views" << std::endl;
 }

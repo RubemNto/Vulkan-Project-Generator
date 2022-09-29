@@ -116,10 +116,17 @@ void Drawing::recordElementsCommandBuffer(
   renderPassInfo.framebuffer = swapChainFramebuffers[imageIndex];
   renderPassInfo.renderArea.offset = {0, 0};
   renderPassInfo.renderArea.extent = extent;
-  VkClearValue clearColor = {{{backgroundColor.red, backgroundColor.green,
-                               backgroundColor.blue, backgroundColor.alpha}}};
-  renderPassInfo.clearValueCount = 1;
-  renderPassInfo.pClearValues = &clearColor;
+  // VkClearValue clearColor = {{{backgroundColor.red, backgroundColor.green,
+  //                              backgroundColor.blue,
+  //                              backgroundColor.alpha}}};
+
+  std::array<VkClearValue, 2> clearValues{};
+  clearValues[0].color = {{backgroundColor.red, backgroundColor.green,
+                           backgroundColor.blue, backgroundColor.alpha}};
+  clearValues[1].depthStencil = {1.0f, 0};
+
+  renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+  renderPassInfo.pClearValues = clearValues.data();
   vkCmdBeginRenderPass(commandBuffer, &renderPassInfo,
                        VK_SUBPASS_CONTENTS_INLINE);
   vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
